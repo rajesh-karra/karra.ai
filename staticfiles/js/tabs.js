@@ -1,5 +1,6 @@
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabPanels = document.querySelectorAll(".tab-panel");
+const headerEntangledToggle = document.querySelector(".entangled-symbol");
 const payloadElement = document.getElementById("qa-graph-data");
 
 let payload = { branches: [], nodes: [], domain_overrides: {} };
@@ -66,6 +67,23 @@ tabButtons.forEach((button) => {
         activateTab(targetId);
     });
 });
+
+if (headerEntangledToggle) {
+    headerEntangledToggle.addEventListener("click", () => {
+        const activePanel = Array.from(tabPanels).find((panel) => panel.classList.contains("active"));
+        if (!activePanel || activePanel.id === "about") {
+            activateTab("quantum");
+            return;
+        }
+
+        if (activePanel.id === "quantum") {
+            activateTab("ai");
+            return;
+        }
+
+        activateTab("quantum");
+    });
+}
 
 function buildDomainNodes(domain) {
     const overrides = DOMAIN_OVERRIDES[domain] || {};

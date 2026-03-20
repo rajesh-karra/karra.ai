@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260320-15" />
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260320-21" />
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}?v=20260320-01" />
 </head>
 <body>
@@ -19,6 +19,9 @@
             <span class="menu-sep" aria-hidden="true">-</span>
             <a class="tab-button tab-link" href="{% url 'blog-list' %}">Blog</a>
         </nav>
+        <div class="header-status" aria-label="Deployment status">
+            <span class="live-badge">Live Version {{ APP_VERSION }}</span>
+        </div>
     </header>
 
     <main class="content blog-page">

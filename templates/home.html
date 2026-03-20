@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260320-16" />
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260320-21" />
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}?v=20260320-01" />
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=20260320-01" />
 </head>
@@ -22,10 +22,13 @@
             <span class="menu-sep" aria-hidden="true">-</span>
             <div class="quantum-ai-combo" role="group" aria-label="Quantum and AI tabs">
                 <button class="tab-button" data-tab="quantum">Quantum</button>
-                <span class="entangled-symbol" aria-hidden="true">&#8734;</span>
+                <button class="entangled-symbol" type="button" aria-label="Toggle between Quantum and AI tabs" title="Toggle Quantum/AI">&#8734;</button>
                 <button class="tab-button" data-tab="ai">AI</button>
             </div>
         </nav>
+        <div class="header-status" aria-label="Deployment status">
+            <span class="live-badge">Live Version {{ APP_VERSION }}</span>
+        </div>
     </header>
 
     <main class="content">
@@ -297,6 +300,6 @@
     </main>
 
     {{ quantum_ai_graph|json_script:"qa-graph-data" }}
-    <script src="{% static 'js/tabs.js' %}?v=20260320-20"></script>
+    <script src="{% static 'js/tabs.js' %}?v=20260320-21"></script>
 </body>
 </html>
