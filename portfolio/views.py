@@ -161,7 +161,6 @@ class HomeView(TemplateView):
             lambda m: f'<a href="{m.group(1)}" target="_blank" rel="noreferrer">{m.group(1)}</a>',
             text,
         )
-        )
         return text
 
     @classmethod
