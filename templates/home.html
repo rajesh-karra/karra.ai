@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260320-4" />
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260320-10" />
 </head>
 <body>
     <header class="site-header">
@@ -28,7 +28,7 @@
         <section id="about" class="tab-panel active">
             <div class="about-layout">
                 <aside class="profile-panel">
-                    <img src="{{ profile.avatar_url|default:'https://avatars.githubusercontent.com/u/1?v=4' }}" alt="Profile avatar" />
+                    <img src="{% static 'img/profile.jpg' %}" alt="Profile avatar" />
                     <h1>{{ profile.name|default:'Rajesh Karra' }}</h1>
                     <p class="tagline">Future-focused researcher and builder in LLMs, Quantum AI, and open research systems.</p>
 
@@ -374,6 +374,6 @@
         </section>
     </main>
 
-    <script src="{% static 'js/tabs.js' %}?v=20260320-4"></script>
+    <script src="{% static 'js/tabs.js' %}?v=20260320-10"></script>
 </body>
 </html>

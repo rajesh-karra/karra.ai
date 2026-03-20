@@ -2,6 +2,7 @@ const tabButtons = document.querySelectorAll(".tab-button");
 const tabPanels = document.querySelectorAll(".tab-panel");
 const searches = document.querySelectorAll(".resource-search");
 const toggles = document.querySelectorAll(".entangled-toggle");
+const entangleButtons = document.querySelectorAll(".entangle-trigger");
 
 function activateTab(targetId) {
     tabButtons.forEach((button) => {
@@ -47,5 +48,13 @@ searches.forEach((search) => {
 toggles.forEach((toggle) => {
     toggle.addEventListener("change", () => {
         updateFilters(toggle.dataset.domain);
+    });
+});
+
+entangleButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        const panel = document.getElementById(button.dataset.target);
+        if (!panel) return;
+        panel.hidden = !panel.hidden;
     });
 });
