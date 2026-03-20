@@ -211,6 +211,135 @@ sudo systemctl restart karra
 sudo systemctl restart nginx
 ```
 
+### 6) Pull Latest GitHub Changes to GCP VM
+
+SSH to VM and run:
+
+```bash
+cd /opt/karra.ai
+git status
+git fetch origin
+git pull --rebase origin main
+```
+
+If the VM is deploy-only and you want it to match GitHub exactly:
+
+```bash
+cd /opt/karra.ai
+git fetch origin
+git reset --hard origin/main
+```
+
+Reinstall/update Python dependencies and restart services:
+
+```bash
+cd /opt/karra.ai
+source .venv/bin/activate
+pip install -r requirements.txt
+deactivate
+sudo systemctl restart karra
+sudo systemctl restart nginx
+```
+
+Exact end-to-end update commands (copy/paste on VM):
+
+```bash
+cd /opt/karra.ai
+
+# 1) Check repo state
+git status
+git remote -v
+git branch --show-current
+
+# 2) If there are local edits, stash them first (safe)
+git stash push -u -m "temp-before-pull-$(date +%F-%H%M%S)"
+
+# 3) Pull latest code from GitHub main
+git fetch origin
+git reset --hard origin/main
+
+# 4) Update Python deps and run Django tasks
+source .venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py collectstatic --noinput
+python manage.py check
+deactivate
+
+# 5) Restart app services
+sudo systemctl restart karra
+sudo systemctl restart nginx
+
+# 6) Verify
+sudo systemctl status karra --no-pager -l
+sudo systemctl status nginx --no-pager -l
+curl -I https://104-198-18-62.sslip.io
+```
+
+### 7) Apply Neon DB Updates After Pull
+
+After code updates, run migrations and sync content:
+
+```bash
+cd /opt/karra.ai
+source .venv/bin/activate
+python manage.py migrate
+python manage.py import_topic_scenarios_json --file data/topic_scenarios.json --replace
+python manage.py sync_github_profile --username r-karra
+python manage.py check
+deactivate
+sudo systemctl restart karra
+```
+
+If your `DATABASE_URL` changed, update `/opt/karra.ai/.env` first and then run the same commands.
+
+### 8) Custom Domain + HTTPS Setup (VM + nginx)
+
+1. Point DNS `A` records to your VM public IP.
+2. Update nginx hostnames and Django allowed hosts.
+3. Issue and deploy TLS certificate with certbot.
+
+Example commands:
+
+```bash
+# Replace these values
+DOMAIN="example.com"
+WWW_DOMAIN="www.example.com"
+EMAIL="you@your-email.com"
+APP_ENV="/opt/karra.ai/.env"
+
+# nginx server_name
+sudo sed -Ei "s|^\s*server_name\s+[^;]+;|    server_name ${DOMAIN} ${WWW_DOMAIN};|" /etc/nginx/sites-available/karra
+
+# Django allowed hosts
+if sudo grep -q '^DJANGO_ALLOWED_HOSTS=' "$APP_ENV"; then
+	sudo sed -i "s|^DJANGO_ALLOWED_HOSTS=.*|DJANGO_ALLOWED_HOSTS=${DOMAIN},${WWW_DOMAIN},127.0.0.1,localhost|" "$APP_ENV"
+else
+	echo "DJANGO_ALLOWED_HOSTS=${DOMAIN},${WWW_DOMAIN},127.0.0.1,localhost" | sudo tee -a "$APP_ENV" >/dev/null
+fi
+
+# Force HTTPS redirects in Django
+if sudo grep -q '^DJANGO_SECURE_SSL_REDIRECT=' "$APP_ENV"; then
+	sudo sed -i 's|^DJANGO_SECURE_SSL_REDIRECT=.*|DJANGO_SECURE_SSL_REDIRECT=True|' "$APP_ENV"
+else
+	echo 'DJANGO_SECURE_SSL_REDIRECT=True' | sudo tee -a "$APP_ENV" >/dev/null
+fi
+
+sudo nginx -t
+sudo systemctl reload nginx
+sudo systemctl restart karra
+
+# Issue TLS cert and configure nginx redirect
+sudo certbot --nginx -d "$DOMAIN" -d "$WWW_DOMAIN" --non-interactive --agree-tos -m "$EMAIL" --redirect
+
+# Verify
+sudo certbot certificates
+curl -I "https://${DOMAIN}"
+curl -I "https://${WWW_DOMAIN}"
+```
+
+Note: Certbot requires a real domain. It will not issue normal certificates for raw public IP addresses.
+
 ## Admin
 
 Create admin user:
