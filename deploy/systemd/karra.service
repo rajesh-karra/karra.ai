@@ -1,0 +1,16 @@
+[Unit]
+Description=karra.ai Django + FastAPI service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/karra.ai
+EnvironmentFile=/opt/karra.ai/.env
+ExecStart=/opt/karra.ai/.venv/bin/gunicorn -c /opt/karra.ai/gunicorn_conf.py config.asgi:application
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

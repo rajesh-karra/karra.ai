@@ -1,0 +1,104 @@
+from django.core.management.base import BaseCommand
+
+from portfolio.models import TopicScenario
+
+
+class Command(BaseCommand):
+    help = "Seed Neon-backed topic scenarios for Quantum and AI tabs."
+
+    def handle(self, *args, **options):
+        ai_branches = {
+            "resources": [
+                {"title": "Google Research Home", "url": "https://research.google/"},
+                {"title": "Google DeepMind", "url": "https://deepmind.google/"},
+            ],
+            "projects": [
+                {
+                    "title": "Quantum Particle Transformer (Q-ParT) Exploration",
+                    "summary": "Prototype sequence models for HEP-style data with hybrid quantum-enhanced blocks.",
+                    "tech_stack": ["JAX", "Flax", "Optax", "PennyLane", "TensorFlow"],
+                },
+                {
+                    "title": "LLM Research Agent Workbench",
+                    "summary": "Rapid experimentation for retrieval, prompting, and model evaluation.",
+                    "tech_stack": ["Python", "JAX", "TensorFlow", "Hugging Face"],
+                },
+            ],
+            "papers": [
+                {"title": "Google Research Publications", "url": "https://research.google/publications/"}
+            ],
+            "open_source": [
+                {"title": "Google DeepMind Educational", "url": "https://github.com/google-deepmind/educational"}
+            ],
+            "git_repos": [
+                {"title": "google-deepmind/educational", "url": "https://github.com/google-deepmind/educational"}
+            ],
+        }
+
+        quantum_branches = {
+            "resources": [
+                {"title": "Google Quantum AI Resources", "url": "https://quantumai.google/resources"},
+                {"title": "IBM Quantum Learning", "url": "https://learning.quantum.ibm.com/"},
+                {"title": "PennyLane Codebook", "url": "https://pennylane.ai/codebook/"},
+            ],
+            "projects": [
+                {
+                    "title": "QML Classifier Prototype",
+                    "summary": "Hybrid classical-quantum model for sequence and jet-style classification tasks.",
+                    "tech_stack": ["PennyLane", "JAX", "Cirq", "Qiskit"],
+                }
+            ],
+            "papers": [
+                {
+                    "title": "Quantum Computation and Quantum Information",
+                    "url": "https://profmcruz.wordpress.com/wp-content/uploads/2017/08/quantum-computation-and-quantum-information-nielsen-chuang.pdf",
+                }
+            ],
+            "open_source": [
+                {"title": "Qiskit Textbook Demos", "url": "https://github.com/Qiskit/textbook/tree/main/notebooks/ch-demos#"}
+            ],
+            "git_repos": [
+                {"title": "Qiskit/textbook", "url": "https://github.com/Qiskit/textbook"},
+                {"title": "r-karra/super-book", "url": "https://github.com/r-karra/super-book"},
+            ],
+        }
+
+        TopicScenario.objects.update_or_create(
+            domain=TopicScenario.Domain.AI,
+            defaults={
+                "topic_key": "google_research",
+                "topic_title": "Google Research",
+                "topic_url": "https://research.google/",
+                "description": "Branching: Resources, Project List, Papers, Open Source, Git Repos.",
+                "branches": ai_branches,
+                "entangled_partner_label": "QML",
+                "entangled_panel_title": "Entangled Content: Google Research AI ↔ QML",
+                "entangled_panel_body": "When a project requires quantum-specific stack components (for example, PennyLane, Cirq, Qiskit, or QML methods), it becomes entangled to the Quantum tab under QML branches.",
+                "entangled_points": [
+                    "Entangled Projects: Q-ParT exploration and quantum attention prototypes.",
+                    "Entangled Stack Trigger: JAX + QML tooling crossover.",
+                    "Navigation Rule: AI project node points to QML node and vice versa.",
+                ],
+            },
+        )
+
+        TopicScenario.objects.update_or_create(
+            domain=TopicScenario.Domain.QUANTUM,
+            defaults={
+                "topic_key": "qml",
+                "topic_title": "QML",
+                "topic_url": "https://quantumai.google/resources",
+                "description": "Branching: Resources, Projects, Papers, Open Source, Git Repos.",
+                "branches": quantum_branches,
+                "entangled_partner_label": "Google Research AI",
+                "entangled_panel_title": "Entangled Content: QML ↔ Google Research AI",
+                "entangled_panel_body": "This pair is entangled because the project tech stacks overlap heavily across JAX, TensorFlow, and hybrid QML workflows for sequence modeling and scientific research.",
+                "entangled_points": [
+                    "Shared Stack: JAX, TensorFlow, Flax, Optax, PennyLane.",
+                    "Cross-Objective: AI model scaling + quantum-enhanced representation learning.",
+                    "Research Bridge: Q-ParT style HEP tasks and quantum-aware transformer experiments.",
+                ],
+            },
+        )
+
+        self.stdout.write(self.style.SUCCESS("Seeded TopicScenario records for AI and Quantum."))
