@@ -4,6 +4,7 @@ from html import escape
 from pathlib import Path
 
 from django.http import JsonResponse
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils.safestring import mark_safe
@@ -26,14 +27,29 @@ from .models import (
     TopicScenario,
 )
 
+# Pre-compile regex patterns for performance
+_KEYWORD_PATTERN_CACHE = {}
+_URL_MARKDOWN_PATTERN = re.compile(r"\[([^\]]+)\]\((https?://[^)\s]+)\)")
+_URL_BARE_PATTERN = re.compile(r"(?<![\"'=])(https?://[^\s<]+)")
+
 
 class HomeView(TemplateView):
     template_name = "home.html"
 
     @staticmethod
     def _build_knowledge_graph_from_db() -> dict:
+        # Cache the entire knowledge graph for 5 minutes (300 seconds)
+        # This dramatically reduces DB queries on high-traffic pages
+        cache_key = "knowledge_graph_home_view"
+        cached_result = cache.get(cache_key)
+        
+        if cached_result is not None:
+            return cached_result
+        
         if not KnowledgeNode.objects.exists():
-            return {"branches": [], "nodes": [], "domain_overrides": {}}
+            result = {"branches": [], "nodes": [], "domain_overrides": {}}
+            cache.set(cache_key, result, 300)
+            return result
 
         node_queryset = KnowledgeNode.objects.select_related("branch", "topic")
 
@@ -98,11 +114,14 @@ class HomeView(TemplateView):
                 }
             )
 
-        return {
+        result = {
             "branches": branch_titles,
             "nodes": nodes,
             "domain_overrides": {},
         }
+        cache.set(cache_key, result, 300)  # Cache for 5 minutes
+        return result
+
 
     @staticmethod
     def _load_quantum_ai_graph() -> dict:
@@ -119,26 +138,29 @@ class HomeView(TemplateView):
 
     @staticmethod
     def _highlight_keywords(text: str) -> str:
+        # Use pre-compiled patterns and cache keyword results for performance
         keywords = ["LLM", "LLMs", "Quantum AI", "QML", "JAX", "DeepMind", "Google Research"]
         for keyword in keywords:
-            pattern = re.compile(rf"\b{re.escape(keyword)}\b", re.IGNORECASE)
+            if keyword not in _KEYWORD_PATTERN_CACHE:
+                _KEYWORD_PATTERN_CACHE[keyword] = re.compile(rf"\b{re.escape(keyword)}\b", re.IGNORECASE)
+            pattern = _KEYWORD_PATTERN_CACHE[keyword]
             text = pattern.sub(lambda m: f"<span class=\"hl\">{m.group(0)}</span>", text)
         return text
 
     @staticmethod
     def _linkify(text: str) -> str:
+        # Use pre-compiled regex patterns for URLs (compiled at module load time)
         # Markdown links first: [label](url)
-        text = re.sub(
-            r"\[([^\]]+)\]\((https?://[^)\s]+)\)",
+        text = _URL_MARKDOWN_PATTERN.sub(
             lambda m: f'<a href="{m.group(2)}" target="_blank" rel="noreferrer">{m.group(1)}</a>',
             text,
         )
 
         # Bare URLs
-        text = re.sub(
-            r"(?<![\"'=])(https?://[^\s<]+)",
+        text = _URL_BARE_PATTERN.sub(
             lambda m: f'<a href="{m.group(1)}" target="_blank" rel="noreferrer">{m.group(1)}</a>',
             text,
+        )
         )
         return text
 
