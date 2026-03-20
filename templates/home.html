@@ -8,13 +8,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260320-10" />
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260320-16" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}?v=20260320-01" />
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=20260320-01" />
 </head>
 <body>
     <header class="site-header">
         <a class="brand" href="#" aria-label="Homepage">{{ profile.name|default:'Rajesh Karra' }}</a>
         <nav class="main-menu" aria-label="Main navigation">
             <button class="tab-button active" data-tab="about">About Me</button>
+            <span class="menu-sep" aria-hidden="true">-</span>
+            <a class="tab-button tab-link" href="{% url 'blog-list' %}">Blog</a>
             <span class="menu-sep" aria-hidden="true">-</span>
             <div class="quantum-ai-combo" role="group" aria-label="Quantum and AI tabs">
                 <button class="tab-button" data-tab="quantum">Quantum</button>
@@ -218,162 +222,81 @@
         </section>
 
         <section id="quantum" class="tab-panel">
-            <div class="tab-head">
-                <h2>Quantum</h2>
-                <a href="{{ scenario.quantum.url }}" target="_blank" rel="noreferrer" class="topic-link">{{ scenario.quantum.topic }}</a>
-            </div>
+            <section class="qa-shell" data-domain="quantum" data-graph-endpoint="{% url 'knowledge-graph-api' %}">
+                <aside class="qa-sidebar" aria-label="Quantum AI branches">
+                    <p class="qa-topic">Topic</p>
+                    <h2>Quantum AI</h2>
+                    <p class="qa-subtitle">Primary Navigation</p>
+                    <div class="qa-branches" role="tablist" aria-label="Quantum AI branches"></div>
+                </aside>
 
-            <article class="scenario-card">
-                <h3>{{ scenario.quantum.topic }}</h3>
-                <p class="section-intro">{{ scenario.quantum.description }}</p>
+                <section class="qa-main" aria-live="polite">
+                    <header class="qa-main-head">
+                        <p class="qa-kicker">Dynamic Page Loader</p>
+                        <p class="qa-build">Build 20260320-20</p>
+                        <h3 class="qa-branch-title">Documentation</h3>
+                        <div class="qa-live-hero"></div>
+                    </header>
+                    <div class="qa-main-grid">
+                        <nav class="qa-node-list" aria-label="Branch nodes"></nav>
+                        <article class="qa-node-detail"></article>
+                    </div>
+                </section>
 
-                <div class="branch-grid">
-                    <section>
-                        <h4>Resources</h4>
-                        <ul>
-                            {% for item in scenario.quantum.branches.resources %}
-                            <li><a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.title }}</a></li>
-                            {% endfor %}
-                        </ul>
+                <aside class="qa-right" aria-label="Entanglement panel">
+                    <header>
+                        <p class="qa-kicker">Entanglement Engine</p>
+                        <h3>Related Content</h3>
+                    </header>
+                    <div class="qa-related"></div>
+                    <section class="qa-stats" aria-label="Live statistics"></section>
+                    <section class="qa-graph-wrap">
+                        <h4>Knowledge Graph View</h4>
+                        <svg class="qa-graph" viewBox="0 0 360 220" role="img" aria-label="Node relation graph"></svg>
                     </section>
-
-                    <section>
-                        <h4>Projects</h4>
-                        <ul>
-                            {% for project in scenario.quantum.branches.projects %}
-                            <li>
-                                <strong>{{ project.title }}</strong>
-                                <p>{{ project.summary }}</p>
-                                <p><span class="mono">Tech Stack:</span> {{ project.tech_stack|join:", " }}</p>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </section>
-
-                    <section>
-                        <h4>Papers</h4>
-                        <ul>
-                            {% for item in scenario.quantum.branches.papers %}
-                            <li><a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.title }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </section>
-
-                    <section>
-                        <h4>Open Source</h4>
-                        <ul>
-                            {% for item in scenario.quantum.branches.open_source %}
-                            <li><a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.title }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </section>
-
-                    <section>
-                        <h4>Git Repos</h4>
-                        <ul>
-                            {% for item in scenario.quantum.branches.git_repos %}
-                            <li><a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.title }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </section>
-                </div>
-            </article>
-
-            <div class="entangle-pair">
-                <span>QML</span>
-                <button class="entangle-trigger" data-target="entangled-qml-ai" aria-label="Open entangled pair content">&#8734;</button>
-                <span>{{ scenario.quantum.entangled_partner_label }}</span>
-            </div>
-            <article id="entangled-qml-ai" class="entangled-panel" hidden>
-                <h4>{{ scenario.quantum.entangled_panel_title }}</h4>
-                <p>{{ scenario.quantum.entangled_panel_body }}</p>
-                <ul>
-                    {% for point in scenario.quantum.entangled_points %}
-                    <li>{{ point }}</li>
-                    {% endfor %}
-                </ul>
-            </article>
+                </aside>
+            </section>
         </section>
 
         <section id="ai" class="tab-panel">
-            <div class="tab-head">
-                <h2>AI</h2>
-                <a href="{{ scenario.ai.url }}" target="_blank" rel="noreferrer" class="topic-link">{{ scenario.ai.topic }}</a>
-            </div>
+            <section class="qa-shell" data-domain="ai" data-graph-endpoint="{% url 'knowledge-graph-api' %}">
+                <aside class="qa-sidebar" aria-label="Quantum AI branches">
+                    <p class="qa-topic">Topic</p>
+                    <h2>Quantum AI</h2>
+                    <p class="qa-subtitle">Primary Navigation</p>
+                    <div class="qa-branches" role="tablist" aria-label="Quantum AI branches"></div>
+                </aside>
 
-            <article class="scenario-card">
-                <h3>{{ scenario.ai.topic }}</h3>
-                <p class="section-intro">{{ scenario.ai.description }}</p>
+                <section class="qa-main" aria-live="polite">
+                    <header class="qa-main-head">
+                        <p class="qa-kicker">Dynamic Page Loader</p>
+                        <p class="qa-build">Build 20260320-20</p>
+                        <h3 class="qa-branch-title">Documentation</h3>
+                        <div class="qa-live-hero"></div>
+                    </header>
+                    <div class="qa-main-grid">
+                        <nav class="qa-node-list" aria-label="Branch nodes"></nav>
+                        <article class="qa-node-detail"></article>
+                    </div>
+                </section>
 
-                <div class="branch-grid">
-                    <section>
-                        <h4>Resources</h4>
-                        <ul>
-                            {% for item in scenario.ai.branches.resources %}
-                            <li><a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.title }}</a></li>
-                            {% endfor %}
-                        </ul>
+                <aside class="qa-right" aria-label="Entanglement panel">
+                    <header>
+                        <p class="qa-kicker">Entanglement Engine</p>
+                        <h3>Related Content</h3>
+                    </header>
+                    <div class="qa-related"></div>
+                    <section class="qa-stats" aria-label="Live statistics"></section>
+                    <section class="qa-graph-wrap">
+                        <h4>Knowledge Graph View</h4>
+                        <svg class="qa-graph" viewBox="0 0 360 220" role="img" aria-label="Node relation graph"></svg>
                     </section>
-
-                    <section>
-                        <h4>Project List with Required Tech Stack</h4>
-                        <ul>
-                            {% for project in scenario.ai.branches.projects %}
-                            <li>
-                                <strong>{{ project.title }}</strong>
-                                <p>{{ project.summary }}</p>
-                                <p><span class="mono">Tech Stack:</span> {{ project.tech_stack|join:", " }}</p>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </section>
-
-                    <section>
-                        <h4>Papers</h4>
-                        <ul>
-                            {% for item in scenario.ai.branches.papers %}
-                            <li><a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.title }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </section>
-
-                    <section>
-                        <h4>Open Source</h4>
-                        <ul>
-                            {% for item in scenario.ai.branches.open_source %}
-                            <li><a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.title }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </section>
-
-                    <section>
-                        <h4>Git Repos</h4>
-                        <ul>
-                            {% for item in scenario.ai.branches.git_repos %}
-                            <li><a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.title }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </section>
-                </div>
-            </article>
-
-            <div class="entangle-pair">
-                <span>Google Research AI</span>
-                <button class="entangle-trigger" data-target="entangled-ai-qml" aria-label="Open entangled pair content">&#8734;</button>
-                <span>{{ scenario.ai.entangled_partner_label }}</span>
-            </div>
-            <article id="entangled-ai-qml" class="entangled-panel" hidden>
-                <h4>{{ scenario.ai.entangled_panel_title }}</h4>
-                <p>{{ scenario.ai.entangled_panel_body }}</p>
-                <ul>
-                    {% for point in scenario.ai.entangled_points %}
-                    <li>{{ point }}</li>
-                    {% endfor %}
-                </ul>
-            </article>
+                </aside>
+            </section>
         </section>
     </main>
 
-    <script src="{% static 'js/tabs.js' %}?v=20260320-10"></script>
+    {{ quantum_ai_graph|json_script:"qa-graph-data" }}
+    <script src="{% static 'js/tabs.js' %}?v=20260320-20"></script>
 </body>
 </html>

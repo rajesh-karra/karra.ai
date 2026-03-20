@@ -198,6 +198,35 @@ sudo systemctl status nginx
 curl -I http://127.0.0.1:8000
 ```
 
+### 4.1) Automated Knowledge Sync (Every 6 Hours)
+
+The deployment scripts now install a systemd timer that refreshes live Quantum/AI data
+(papers, repositories, resources, and static payload generation) every 6 hours.
+
+Timer units:
+
+- `karra-knowledge-sync.service`
+- `karra-knowledge-sync.timer`
+
+Check status:
+
+```bash
+sudo systemctl status karra-knowledge-sync.timer
+sudo systemctl list-timers | grep karra-knowledge-sync
+```
+
+Run a manual sync at any time:
+
+```bash
+sudo systemctl start karra-knowledge-sync.service
+```
+
+View sync logs:
+
+```bash
+sudo journalctl -u karra-knowledge-sync.service -n 200 --no-pager
+```
+
 ### 5) Enable HTTPS (Recommended)
 
 - Point your domain DNS `A` record to VM public IP.

@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog | Rajesh Karra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260320-15" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}?v=20260320-01" />
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="{% url 'home' %}" aria-label="Homepage">Rajesh Karra</a>
+        <nav class="main-menu" aria-label="Main navigation">
+            <a class="tab-button tab-link" href="{% url 'home' %}">Home</a>
+            <span class="menu-sep" aria-hidden="true">-</span>
+            <a class="tab-button tab-link active" href="{% url 'blog-list' %}">Blog</a>
+        </nav>
+    </header>
+
+    <main class="content blog-page">
+        <section class="blog-head">
+            <p>Knowledge Journal</p>
+            <h1>Research and Build Notes</h1>
+            <div class="blog-head-actions">
+                <a href="{% url 'home' %}#ai">Back to AI</a>
+                <a href="{% url 'blog-write' %}">Write Post</a>
+            </div>
+        </section>
+
+        {% if posts %}
+        <section class="blog-grid">
+            {% for post in posts %}
+            <article class="blog-card">
+                <p class="blog-meta">
+                    {% if post.published_at %}
+                    {{ post.published_at|date:'Y-m-d' }}
+                    {% else %}
+                    Draft
+                    {% endif %}
+                </p>
+                <h2><a href="{% url 'blog-detail' slug=post.slug %}">{{ post.title }}</a></h2>
+                <p>{{ post.summary|default:post.body|truncatechars:220 }}</p>
+                <a class="blog-read" href="{% url 'blog-detail' slug=post.slug %}">Read post</a>
+            </article>
+            {% endfor %}
+        </section>
+
+        {% if is_paginated %}
+        <nav class="blog-pager" aria-label="Pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            {% endif %}
+            <span>Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Next</a>
+            {% endif %}
+        </nav>
+        {% endif %}
+        {% else %}
+        <section class="section-card">
+            <h2>No published posts yet</h2>
+            <p>Use Django admin to publish your first post from the BlogPost table.</p>
+        </section>
+        {% endif %}
+    </main>
+</body>
+</html>

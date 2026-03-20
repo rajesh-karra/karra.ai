@@ -1,0 +1,11 @@
+[Unit]
+Description=Run karra.ai Quantum/AI knowledge sync every 6 hours
+
+[Timer]
+OnBootSec=10m
+OnUnitActiveSec=6h
+Unit=karra-knowledge-sync.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

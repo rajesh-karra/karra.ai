@@ -136,10 +136,13 @@ run_cmd python manage.py migrate
 run_cmd python manage.py collectstatic --noinput
 run_cmd python manage.py sync_github_profile --username r-karra
 run_cmd python manage.py import_topic_scenarios_json --file data/topic_scenarios.json --replace
+run_cmd python manage.py sync_quantum_ai_knowledge
 run_cmd python manage.py check
 
 echo "[7/8] Configuring systemd and nginx..."
 run_cmd sudo cp deploy/systemd/karra.service /etc/systemd/system/karra.service
+run_cmd sudo cp deploy/systemd/karra-knowledge-sync.service /etc/systemd/system/karra-knowledge-sync.service
+run_cmd sudo cp deploy/systemd/karra-knowledge-sync.timer /etc/systemd/system/karra-knowledge-sync.timer
 run_cmd sudo cp deploy/nginx/karra.conf /etc/nginx/sites-available/karra
 
 if [[ -n "$DOMAIN" ]]; then
@@ -152,7 +155,9 @@ run_cmd sudo rm -f /etc/nginx/sites-enabled/default
 run_cmd sudo chown -R "$APP_USER":"$APP_USER" "$APP_DIR"
 run_cmd sudo systemctl daemon-reload
 run_cmd sudo systemctl enable karra
+run_cmd sudo systemctl enable karra-knowledge-sync.timer
 run_cmd sudo systemctl restart karra
+run_cmd sudo systemctl restart karra-knowledge-sync.timer
 run_cmd sudo nginx -t
 run_cmd sudo systemctl restart nginx
 
@@ -173,4 +178,4 @@ else
   echo "[8/8] Deployment complete."
 fi
 
-echo "Run: sudo systemctl status karra && sudo systemctl status nginx"
+echo "Run: sudo systemctl status karra && sudo systemctl status karra-knowledge-sync.timer && sudo systemctl status nginx"

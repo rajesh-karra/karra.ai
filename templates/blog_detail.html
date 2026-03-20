@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ post.title }} | Blog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260320-15" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}?v=20260320-01" />
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="{% url 'home' %}" aria-label="Homepage">Rajesh Karra</a>
+        <nav class="main-menu" aria-label="Main navigation">
+            <a class="tab-button tab-link" href="{% url 'home' %}">Home</a>
+            <span class="menu-sep" aria-hidden="true">-</span>
+            <a class="tab-button tab-link" href="{% url 'blog-list' %}">Blog</a>
+        </nav>
+    </header>
+
+    <main class="content blog-page">
+        <article class="blog-article">
+            <p class="blog-meta">
+                {% if post.published_at %}
+                {{ post.published_at|date:'Y-m-d H:i' }}
+                {% else %}
+                Draft
+                {% endif %}
+            </p>
+            <h1>{{ post.title }}</h1>
+            {% if post.summary %}
+            <p class="blog-summary">{{ post.summary }}</p>
+            {% endif %}
+            <div class="blog-body">
+                {{ post.body|linebreaks }}
+            </div>
+            <p><a class="blog-read" href="{% url 'blog-list' %}">Back to Blog</a></p>
+        </article>
+    </main>
+</body>
+</html>

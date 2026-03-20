@@ -31,15 +31,20 @@ python manage.py migrate
 python manage.py collectstatic --noinput
 python manage.py seed_portfolio_data
 python manage.py sync_github_profile --username r-karra
+python manage.py sync_quantum_ai_knowledge
 
 sudo cp deploy/systemd/karra.service /etc/systemd/system/karra.service
+sudo cp deploy/systemd/karra-knowledge-sync.service /etc/systemd/system/karra-knowledge-sync.service
+sudo cp deploy/systemd/karra-knowledge-sync.timer /etc/systemd/system/karra-knowledge-sync.timer
 sudo cp deploy/nginx/karra.conf /etc/nginx/sites-available/karra
 sudo ln -sf /etc/nginx/sites-available/karra /etc/nginx/sites-enabled/karra
 sudo rm -f /etc/nginx/sites-enabled/default
 
 sudo systemctl daemon-reload
 sudo systemctl enable karra
+sudo systemctl enable karra-knowledge-sync.timer
 sudo systemctl restart karra
+sudo systemctl restart karra-knowledge-sync.timer
 sudo nginx -t
 sudo systemctl restart nginx
 

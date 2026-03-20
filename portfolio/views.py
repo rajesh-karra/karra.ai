@@ -1,14 +1,121 @@
 import re
+import json
 from html import escape
+from pathlib import Path
 
+from django.http import JsonResponse
+from django.core.exceptions import PermissionDenied
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils.safestring import mark_safe
-from django.views.generic import TemplateView
+from django.views import View
+from django.views.generic import CreateView, DetailView, ListView, TemplateView
+from django.urls import reverse
 
-from .models import LearningPathContent, Profile, ResourceItem, TopicScenario
+from config.settings import BASE_DIR
+
+from .forms import BlogPostCreateForm
+from .models import (
+    KnowledgeNode,
+    KnowledgeNodeLink,
+    KnowledgeNodeResource,
+    KnowledgeNodeTechStack,
+    BlogPost,
+    LearningPathContent,
+    Profile,
+    ResourceItem,
+    TopicScenario,
+)
 
 
 class HomeView(TemplateView):
     template_name = "home.html"
+
+    @staticmethod
+    def _build_knowledge_graph_from_db() -> dict:
+        if not KnowledgeNode.objects.exists():
+            return {"branches": [], "nodes": [], "domain_overrides": {}}
+
+        node_queryset = KnowledgeNode.objects.select_related("branch", "topic")
+
+        branch_titles = list(
+            dict.fromkeys(
+                node_queryset.order_by("branch__sort_order", "branch__title").values_list("branch__title", flat=True)
+            )
+        )
+
+        links_by_node = {}
+        for link in KnowledgeNodeLink.objects.filter(is_live=True).select_related("from_node", "to_node"):
+            links_by_node.setdefault(link.from_node.node_key, []).append(link.to_node.node_key)
+
+        resources_by_node = {}
+        for resource in KnowledgeNodeResource.objects.all().order_by("resource_type", "title"):
+            resources_by_node.setdefault(resource.node.node_key, []).append(
+                {
+                    "type": resource.resource_type,
+                    "title": resource.title,
+                    "url": resource.url,
+                    "source": resource.source,
+                    "summary": resource.summary,
+                    "last_checked_at": resource.last_checked_at.isoformat() if resource.last_checked_at else None,
+                }
+            )
+
+        tech_by_node = {}
+        tech_links = KnowledgeNodeTechStack.objects.select_related("node", "tool").all().order_by(
+            "-is_primary", "tool__name"
+        )
+        for tech_link in tech_links:
+            tech_by_node.setdefault(tech_link.node.node_key, []).append(
+                {
+                    "name": tech_link.tool.name,
+                    "category": tech_link.tool.category,
+                    "homepage_url": tech_link.tool.homepage_url,
+                    "docs_url": tech_link.tool.docs_url,
+                    "is_primary": tech_link.is_primary,
+                    "note": tech_link.note,
+                }
+            )
+
+        nodes = []
+        for node in node_queryset:
+            resources = resources_by_node.get(node.node_key, [])
+            cookbooks = [item for item in resources if item["type"] == KnowledgeNodeResource.ResourceType.COOKBOOK]
+
+            nodes.append(
+                {
+                    "node_id": node.node_key,
+                    "branch": node.branch.title,
+                    "type": node.node_type,
+                    "domain": node.domain,
+                    "title": node.title,
+                    "content": node.content or node.summary,
+                    "links": links_by_node.get(node.node_key, []),
+                    "url": node.canonical_url,
+                    "is_live_entangled": node.is_live_entangled,
+                    "resources": resources,
+                    "tech_stack": tech_by_node.get(node.node_key, []),
+                    "cookbooks": cookbooks,
+                }
+            )
+
+        return {
+            "branches": branch_titles,
+            "nodes": nodes,
+            "domain_overrides": {},
+        }
+
+    @staticmethod
+    def _load_quantum_ai_graph() -> dict:
+        db_payload = HomeView._build_knowledge_graph_from_db()
+        if db_payload.get("nodes"):
+            return db_payload
+
+        graph_path = Path(BASE_DIR) / "data" / "quantum_ai_graph.json"
+        if not graph_path.exists():
+            return {"branches": [], "nodes": [], "domain_overrides": {}}
+
+        with graph_path.open("r", encoding="utf-8") as fp:
+            return json.load(fp)
 
     @staticmethod
     def _highlight_keywords(text: str) -> str:
@@ -157,6 +264,7 @@ class HomeView(TemplateView):
         context["github_organizations"] = profile.organizations.all() if profile else []
         context["github_repositories"] = profile.repositories.all() if profile else []
         context["scenario"] = self._build_scenario_context()
+        context["quantum_ai_graph"] = self._load_quantum_ai_graph()
 
         domain_data = {
             ResourceItem.Domain.QUANTUM: self._build_domain_payload(ResourceItem.Domain.QUANTUM),
@@ -165,3 +273,47 @@ class HomeView(TemplateView):
 
         context["domain_data"] = domain_data
         return context
+
+
+class KnowledgeGraphAPIView(View):
+    def get(self, request, *args, **kwargs):
+        return JsonResponse(HomeView._load_quantum_ai_graph())
+
+
+class BlogListView(ListView):
+    template_name = "blog_list.html"
+    model = BlogPost
+    context_object_name = "posts"
+    paginate_by = 12
+
+    def get_queryset(self):
+        return BlogPost.objects.filter(status=BlogPost.Status.PUBLISHED)
+
+
+class BlogDetailView(DetailView):
+    template_name = "blog_detail.html"
+    model = BlogPost
+    context_object_name = "post"
+    slug_field = "slug"
+    slug_url_kwarg = "slug"
+
+    def get_queryset(self):
+        return BlogPost.objects.filter(status=BlogPost.Status.PUBLISHED)
+
+
+class BlogCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    template_name = "blog_write.html"
+    model = BlogPost
+    form_class = BlogPostCreateForm
+    login_url = "/admin/login/"
+
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            raise PermissionDenied("Staff access required to write posts.")
+        return super().handle_no_permission()
+
+    def get_success_url(self):
+        return reverse("blog-detail", kwargs={"slug": self.object.slug})

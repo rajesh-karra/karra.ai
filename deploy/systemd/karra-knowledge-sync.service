@@ -1,0 +1,11 @@
+[Unit]
+Description=karra.ai periodic Quantum/AI knowledge sync
+After=network.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/karra.ai
+EnvironmentFile=/opt/karra.ai/.env
+ExecStart=/bin/bash /opt/karra.ai/scripts/run_knowledge_sync.sh

@@ -1,0 +1,325 @@
+{
+  "branches": [
+    "Documentation",
+    "Tech Stack Requirements",
+    "Research Papers",
+    "GitHub Repositories",
+    "Other Resources"
+  ],
+  "nodes": [
+    {
+      "node_id": "doc_overview",
+      "branch": "Documentation",
+      "type": "documentation",
+      "title": "Overview",
+      "content": "A high-level map of Quantum AI, hybrid models, and practical research workflows.",
+      "links": [
+        "quantum_ml",
+        "doc_concepts"
+      ]
+    },
+    {
+      "node_id": "doc_tutorials",
+      "branch": "Documentation",
+      "type": "documentation",
+      "title": "Tutorials",
+      "content": "Step-by-step tracks for building classical-quantum pipelines and model evaluation loops.",
+      "links": [
+        "quantum_ml",
+        "qml_courses"
+      ]
+    },
+    {
+      "node_id": "doc_api_docs",
+      "branch": "Documentation",
+      "type": "documentation",
+      "title": "API Docs",
+      "content": "Reference docs for Qiskit, PennyLane, Cirq, and selected AI training libraries.",
+      "links": [
+        "qiskit",
+        "cirq",
+        "pennylane",
+        "pytorch"
+      ]
+    },
+    {
+      "node_id": "doc_concepts",
+      "branch": "Documentation",
+      "type": "documentation",
+      "title": "Concepts",
+      "content": "Core principles: qubits, gates, variational circuits, and optimization for hybrid systems.",
+      "links": [
+        "quantum_ml",
+        "qml_papers"
+      ]
+    },
+    {
+      "node_id": "react",
+      "branch": "Tech Stack Requirements",
+      "type": "frontend",
+      "title": "React",
+      "content": "Component-driven frontend foundation for branch navigation and dynamic content rendering.",
+      "links": [
+        "tailwind",
+        "quantum_ml"
+      ]
+    },
+    {
+      "node_id": "tailwind",
+      "branch": "Tech Stack Requirements",
+      "type": "frontend",
+      "title": "Tailwind",
+      "content": "Utility-first styling layer for responsive, expressive layout and fast UI iteration.",
+      "links": [
+        "react"
+      ]
+    },
+    {
+      "node_id": "flask_fastapi",
+      "branch": "Tech Stack Requirements",
+      "type": "backend",
+      "title": "Flask / FastAPI",
+      "content": "Backend services for serving node payloads, recommendation logic, and graph metadata.",
+      "links": [
+        "quantum_ml",
+        "qml_github"
+      ]
+    },
+    {
+      "node_id": "jax",
+      "branch": "Tech Stack Requirements",
+      "type": "ml",
+      "title": "JAX",
+      "content": "High-performance numerical stack with XLA acceleration for quantum-classical workloads.",
+      "links": [
+        "quantum_ml",
+        "qml_github"
+      ]
+    },
+    {
+      "node_id": "pytorch",
+      "branch": "Tech Stack Requirements",
+      "type": "ml",
+      "title": "PyTorch",
+      "content": "Deep learning stack for baseline models, ablation studies, and hybrid comparisons.",
+      "links": [
+        "quantum_ml",
+        "deep_learning_papers"
+      ]
+    },
+    {
+      "node_id": "qiskit",
+      "branch": "Tech Stack Requirements",
+      "type": "quantum",
+      "title": "Qiskit",
+      "content": "Quantum SDK for circuit building, simulation, and hardware-oriented experiments.",
+      "links": [
+        "quantum_ml",
+        "qml_papers"
+      ]
+    },
+    {
+      "node_id": "cirq",
+      "branch": "Tech Stack Requirements",
+      "type": "quantum",
+      "title": "Cirq",
+      "content": "Google-focused circuit framework for NISQ algorithms and simulator experimentation.",
+      "links": [
+        "quantum_ml",
+        "hybrid_models_papers"
+      ]
+    },
+    {
+      "node_id": "pennylane",
+      "branch": "Tech Stack Requirements",
+      "type": "quantum",
+      "title": "PennyLane",
+      "content": "Differentiable quantum programming interface for hybrid model training loops.",
+      "links": [
+        "quantum_ml",
+        "qml_papers"
+      ]
+    },
+    {
+      "node_id": "quantum_ml",
+      "branch": "Tech Stack Requirements",
+      "type": "tech",
+      "title": "Quantum Machine Learning",
+      "content": "Special entangled node connecting quantum concepts, papers, repositories, and course resources.",
+      "links": [
+        "doc_concepts",
+        "qml_papers",
+        "qml_github",
+        "qml_courses"
+      ]
+    },
+    {
+      "node_id": "google_research_papers",
+      "branch": "Research Papers",
+      "type": "paper-source",
+      "title": "Google Research",
+      "content": "Curated publications and applied research for advanced AI and quantum research programs.",
+      "links": [
+        "qml_papers",
+        "deep_learning_papers"
+      ],
+      "url": "https://research.google/publications/"
+    },
+    {
+      "node_id": "arxiv_papers",
+      "branch": "Research Papers",
+      "type": "paper-source",
+      "title": "Arxiv",
+      "content": "Preprint source for rapidly evolving quantum AI and hybrid modeling research.",
+      "links": [
+        "qml_papers",
+        "hybrid_models_papers"
+      ],
+      "url": "https://arxiv.org/"
+    },
+    {
+      "node_id": "papers_with_code",
+      "branch": "Research Papers",
+      "type": "paper-source",
+      "title": "PapersWithCode",
+      "content": "Benchmark-aware source that links papers to implementations and reproducibility assets.",
+      "links": [
+        "qml_papers",
+        "qml_github"
+      ],
+      "url": "https://paperswithcode.com/"
+    },
+    {
+      "node_id": "qml_papers",
+      "branch": "Research Papers",
+      "type": "paper",
+      "title": "Quantum ML Papers",
+      "content": "Key readings on variational circuits, quantum kernels, and hybrid architectures.",
+      "links": [
+        "quantum_ml",
+        "qml_github",
+        "qml_courses"
+      ]
+    },
+    {
+      "node_id": "deep_learning_papers",
+      "branch": "Research Papers",
+      "type": "paper",
+      "title": "Deep Learning Papers",
+      "content": "Foundational and modern deep learning papers for baseline and transfer comparisons.",
+      "links": [
+        "pytorch",
+        "hybrid_models_papers"
+      ]
+    },
+    {
+      "node_id": "hybrid_models_papers",
+      "branch": "Research Papers",
+      "type": "paper",
+      "title": "Hybrid Models",
+      "content": "Cross-domain papers on combining classical attention layers with quantum circuits.",
+      "links": [
+        "quantum_ml",
+        "cirq",
+        "jax"
+      ]
+    },
+    {
+      "node_id": "qml_github",
+      "branch": "GitHub Repositories",
+      "type": "repo",
+      "title": "Quantum ML Repos",
+      "content": "Repository collection for production and experimental Quantum ML implementations.",
+      "links": [
+        "quantum_ml",
+        "qml_papers",
+        "jax"
+      ],
+      "url": "https://github.com/topics/quantum-machine-learning"
+    },
+    {
+      "node_id": "ml_github",
+      "branch": "GitHub Repositories",
+      "type": "repo",
+      "title": "ML Projects",
+      "content": "General machine learning repositories for models, pipelines, and deployment references.",
+      "links": [
+        "pytorch",
+        "jax"
+      ],
+      "url": "https://github.com/topics/machine-learning"
+    },
+    {
+      "node_id": "tools_jax_optax",
+      "branch": "GitHub Repositories",
+      "type": "repo",
+      "title": "Tools (JAX, Optax, etc.)",
+      "content": "Ecosystem tools that support optimization, experimentation, and scalable training.",
+      "links": [
+        "jax",
+        "ml_github",
+        "quantum_ml"
+      ],
+      "url": "https://github.com/google-deepmind/optax"
+    },
+    {
+      "node_id": "youtube_research",
+      "branch": "Other Resources",
+      "type": "resource",
+      "title": "YouTube (Google Research, Quantum AI)",
+      "content": "Talks and explainers that connect practical engineering to active research outcomes.",
+      "links": [
+        "google_research_papers",
+        "qml_courses"
+      ],
+      "url": "https://www.youtube.com/@GoogleResearch"
+    },
+    {
+      "node_id": "qml_courses",
+      "branch": "Other Resources",
+      "type": "resource",
+      "title": "Courses",
+      "content": "Structured learning routes for Quantum ML foundations and implementation techniques.",
+      "links": [
+        "quantum_ml",
+        "doc_tutorials",
+        "qml_papers"
+      ]
+    },
+    {
+      "node_id": "blogs",
+      "branch": "Other Resources",
+      "type": "resource",
+      "title": "Blogs",
+      "content": "Independent analyses, implementation notes, and trend breakdowns across AI and quantum.",
+      "links": [
+        "doc_overview",
+        "hybrid_models_papers"
+      ]
+    }
+  ],
+  "domain_overrides": {
+    "quantum": {
+      "doc_overview": {
+        "content": "Quantum page overview focused on circuits, simulators, and hybrid model design patterns."
+      },
+      "quantum_ml": {
+        "content": "Quantum-first perspective: circuit design, measurement strategy, and model expressivity tradeoffs."
+      },
+      "qml_github": {
+        "url": "https://github.com/topics/quantum-computing"
+      }
+    },
+    "ai": {
+      "doc_overview": {
+        "content": "AI page overview focused on model architecture, optimization, and research-to-production transfer."
+      },
+      "quantum_ml": {
+        "content": "AI-first perspective: feature learning, hybrid adaptation, and system-level evaluation for QML."
+      },
+      "qml_github": {
+        "url": "https://github.com/topics/quantum-machine-learning"
+      }
+    }
+  }
+}
