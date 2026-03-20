@@ -1,0 +1,5 @@
+DJANGO_SECRET_KEY=hDcNx8-v3G-xbAgdz8dkQcnC1J4L1sIYGfV0P9_ZUpb330Hs_E0CphpJ3EE3rc_TU8g
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=104.198.18.62
+DJANGO_SECURE_SSL_REDIRECT=False
+DATABASE_URL=postgresql://neondb_owner:npg_FXrtUn5EH0jR@ep-odd-night-a1t4a2na-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
