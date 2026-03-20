@@ -1,0 +1,32 @@
+<article class="card category-column">
+    <h3>{{ title }}</h3>
+
+    {% if panel.own %}
+        <ul class="resource-list">
+            {% for item in panel.own %}
+            <li class="resource-item" data-title="{{ item.title|lower }}" data-description="{{ item.description|lower }}" data-entangled="{% if item.entangled_with_other_domain %}true{% else %}false{% endif %}">
+                <a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.title }}</a>
+                {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+                {% if item.entangled_with_other_domain %}<span class="badge">Entangled</span>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty-state">No entries yet.</p>
+    {% endif %}
+
+    {% if panel.entangled %}
+        <div class="entangled-block">
+            <p>Entangled from other domain</p>
+            <ul class="resource-list">
+                {% for item in panel.entangled %}
+                <li class="resource-item" data-title="{{ item.title|lower }}" data-description="{{ item.description|lower }}" data-entangled="true">
+                    <a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.title }}</a>
+                    {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+                    <span class="badge">Entangled</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</article>
