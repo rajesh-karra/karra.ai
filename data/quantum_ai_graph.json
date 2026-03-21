@@ -4,321 +4,542 @@
     "Tech Stack Requirements",
     "Research Papers",
     "GitHub Repositories",
+    "Benchmarks & Datasets",
     "Other Resources"
   ],
   "nodes": [
     {
-      "node_id": "doc_overview",
+      "node_id": "doc_system_map",
       "branch": "Documentation",
       "type": "documentation",
-      "title": "Overview",
-      "content": "A high-level map of Quantum AI, hybrid models, and practical research workflows.",
-      "links": [
-        "quantum_ml",
-        "doc_concepts"
+      "domain": "shared",
+      "title": "System Map",
+      "content": "A systems-level map for building Quantum + AI products: problem framing, simulators, training loops, and deployment constraints.",
+      "links": ["doc_playbook", "hybrid_training_loop", "repo_qml_toolkit"],
+      "resources": [
+        {
+          "type": "doc",
+          "title": "QML Pipeline Blueprint",
+          "url": "https://pennylane.ai/qml/",
+          "source": "PennyLane",
+          "summary": "Practical flow from data encoding to circuit/optimizer design and evaluation.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
       ]
     },
     {
-      "node_id": "doc_tutorials",
+      "node_id": "doc_playbook",
       "branch": "Documentation",
       "type": "documentation",
-      "title": "Tutorials",
-      "content": "Step-by-step tracks for building classical-quantum pipelines and model evaluation loops.",
-      "links": [
-        "quantum_ml",
-        "qml_courses"
+      "domain": "shared",
+      "title": "Implementation Playbook",
+      "content": "An implementation playbook covering feature encoding, entangling layers, ablations, and reproducibility checklists for hybrid experiments.",
+      "links": ["paper_vqa_overview", "dataset_qg_jets", "stack_pennylane"],
+      "resources": [
+        {
+          "type": "doc",
+          "title": "Reproducibility Checklist",
+          "url": "https://paperswithcode.com/",
+          "source": "PapersWithCode",
+          "summary": "Baseline metrics, seed management, and implementation notes.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        },
+        {
+          "type": "cookbook",
+          "title": "Hybrid Model Experiment Template",
+          "url": "https://github.com/PennyLaneAI/pennylane",
+          "source": "Community",
+          "summary": "Template for controlled ablation and optimizer sweeps.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
       ]
     },
     {
-      "node_id": "doc_api_docs",
+      "node_id": "doc_failure_modes",
       "branch": "Documentation",
       "type": "documentation",
-      "title": "API Docs",
-      "content": "Reference docs for Qiskit, PennyLane, Cirq, and selected AI training libraries.",
-      "links": [
-        "qiskit",
-        "cirq",
-        "pennylane",
-        "pytorch"
+      "domain": "shared",
+      "title": "Failure Modes",
+      "content": "Common failure modes: barren plateaus, unstable gradients, data leakage in benchmark splits, and simulator-hardware mismatch.",
+      "links": ["paper_barren_plateau", "benchmark_tracking", "stack_optax"],
+      "resources": [
+        {
+          "type": "doc",
+          "title": "Barren Plateau Primer",
+          "url": "https://arxiv.org/abs/1803.11173",
+          "source": "arXiv",
+          "summary": "Why trainability collapses and how architecture depth affects gradients.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
       ]
     },
     {
-      "node_id": "doc_concepts",
-      "branch": "Documentation",
-      "type": "documentation",
-      "title": "Concepts",
-      "content": "Core principles: qubits, gates, variational circuits, and optimization for hybrid systems.",
-      "links": [
-        "quantum_ml",
-        "qml_papers"
-      ]
-    },
-    {
-      "node_id": "react",
+      "node_id": "hybrid_training_loop",
       "branch": "Tech Stack Requirements",
-      "type": "frontend",
-      "title": "React",
-      "content": "Component-driven frontend foundation for branch navigation and dynamic content rendering.",
-      "links": [
-        "tailwind",
-        "quantum_ml"
+      "type": "pipeline",
+      "domain": "shared",
+      "title": "Hybrid Training Loop",
+      "content": "A loop that couples quantum circuit forward passes with classical optimizer updates and checkpointed metric tracking.",
+      "links": ["stack_jax", "stack_pennylane", "benchmark_tracking"],
+      "tech_stack": [
+        {
+          "name": "JAX",
+          "category": "runtime",
+          "homepage_url": "https://jax.readthedocs.io/",
+          "docs_url": "https://jax.readthedocs.io/en/latest/notebooks/quickstart.html",
+          "is_primary": true,
+          "note": "Fast autodiff and XLA compilation for hybrid loops"
+        },
+        {
+          "name": "Optax",
+          "category": "optimizer",
+          "homepage_url": "https://github.com/google-deepmind/optax",
+          "docs_url": "https://optax.readthedocs.io/",
+          "is_primary": true,
+          "note": "Optimizer suite for stable training"
+        }
       ]
     },
     {
-      "node_id": "tailwind",
+      "node_id": "stack_qiskit",
       "branch": "Tech Stack Requirements",
-      "type": "frontend",
-      "title": "Tailwind",
-      "content": "Utility-first styling layer for responsive, expressive layout and fast UI iteration.",
-      "links": [
-        "react"
+      "type": "quantum-sdk",
+      "domain": "quantum",
+      "title": "Qiskit Runtime Stack",
+      "content": "Circuit development and execution path for IBM ecosystem workflows, including transpilation and backend-aware runs.",
+      "links": ["paper_vqa_overview", "repo_qiskit_ml", "dataset_qg_jets"],
+      "tech_stack": [
+        {
+          "name": "Qiskit",
+          "category": "sdk",
+          "homepage_url": "https://www.ibm.com/quantum/qiskit",
+          "docs_url": "https://docs.quantum.ibm.com/",
+          "is_primary": true,
+          "note": "Primary SDK for quantum circuit work"
+        }
       ]
     },
     {
-      "node_id": "flask_fastapi",
+      "node_id": "stack_pennylane",
       "branch": "Tech Stack Requirements",
-      "type": "backend",
-      "title": "Flask / FastAPI",
-      "content": "Backend services for serving node payloads, recommendation logic, and graph metadata.",
-      "links": [
-        "quantum_ml",
-        "qml_github"
+      "type": "quantum-sdk",
+      "domain": "shared",
+      "title": "PennyLane + PyTorch/JAX",
+      "content": "Differentiable quantum programming layer that integrates with classical deep-learning frameworks for end-to-end hybrid optimization.",
+      "links": ["repo_pennylane_demos", "paper_qkernel", "stack_pytorch"],
+      "tech_stack": [
+        {
+          "name": "PennyLane",
+          "category": "sdk",
+          "homepage_url": "https://pennylane.ai/",
+          "docs_url": "https://docs.pennylane.ai/",
+          "is_primary": true,
+          "note": "Differentiable circuits and device abstractions"
+        },
+        {
+          "name": "PyTorch",
+          "category": "ml",
+          "homepage_url": "https://pytorch.org/",
+          "docs_url": "https://pytorch.org/docs/stable/index.html",
+          "is_primary": false,
+          "note": "Classical model components and baselines"
+        }
       ]
     },
     {
-      "node_id": "jax",
+      "node_id": "stack_jax",
       "branch": "Tech Stack Requirements",
-      "type": "ml",
-      "title": "JAX",
-      "content": "High-performance numerical stack with XLA acceleration for quantum-classical workloads.",
-      "links": [
-        "quantum_ml",
-        "qml_github"
+      "type": "ml-runtime",
+      "domain": "ai",
+      "title": "JAX + Flax",
+      "content": "High-performance classical backbone for baseline models, distillation, and evaluating hybrid gains.",
+      "links": ["repo_jax_examples", "paper_transformer", "benchmark_tracking"],
+      "tech_stack": [
+        {
+          "name": "JAX",
+          "category": "runtime",
+          "homepage_url": "https://jax.readthedocs.io/",
+          "docs_url": "https://jax.readthedocs.io/en/latest/",
+          "is_primary": true,
+          "note": "Accelerated tensor and autodiff stack"
+        },
+        {
+          "name": "Flax",
+          "category": "modeling",
+          "homepage_url": "https://github.com/google/flax",
+          "docs_url": "https://flax.readthedocs.io/",
+          "is_primary": false,
+          "note": "Model architecture toolkit"
+        }
       ]
     },
     {
-      "node_id": "pytorch",
+      "node_id": "stack_pytorch",
       "branch": "Tech Stack Requirements",
-      "type": "ml",
-      "title": "PyTorch",
-      "content": "Deep learning stack for baseline models, ablation studies, and hybrid comparisons.",
-      "links": [
-        "quantum_ml",
-        "deep_learning_papers"
+      "type": "ml-runtime",
+      "domain": "ai",
+      "title": "PyTorch Research Stack",
+      "content": "Flexible experimentation stack for baseline replication, model explainability, and transfer to production-serving endpoints.",
+      "links": ["repo_transformer_baselines", "paper_transformer", "paper_diffusion"],
+      "tech_stack": [
+        {
+          "name": "PyTorch",
+          "category": "framework",
+          "homepage_url": "https://pytorch.org/",
+          "docs_url": "https://pytorch.org/docs/stable/index.html",
+          "is_primary": true,
+          "note": "Primary AI experimentation framework"
+        }
       ]
     },
     {
-      "node_id": "qiskit",
+      "node_id": "stack_optax",
       "branch": "Tech Stack Requirements",
-      "type": "quantum",
-      "title": "Qiskit",
-      "content": "Quantum SDK for circuit building, simulation, and hardware-oriented experiments.",
-      "links": [
-        "quantum_ml",
-        "qml_papers"
+      "type": "optimizer",
+      "domain": "shared",
+      "title": "Optimization + Schedules",
+      "content": "Learning-rate schedules, clipping strategies, and gradient accumulation to stabilize hybrid and classical training.",
+      "links": ["hybrid_training_loop", "benchmark_tracking"],
+      "tech_stack": [
+        {
+          "name": "Optax",
+          "category": "optimizer",
+          "homepage_url": "https://github.com/google-deepmind/optax",
+          "docs_url": "https://optax.readthedocs.io/",
+          "is_primary": true,
+          "note": "Optimizer and schedule primitives"
+        }
       ]
     },
     {
-      "node_id": "cirq",
-      "branch": "Tech Stack Requirements",
-      "type": "quantum",
-      "title": "Cirq",
-      "content": "Google-focused circuit framework for NISQ algorithms and simulator experimentation.",
-      "links": [
-        "quantum_ml",
-        "hybrid_models_papers"
-      ]
-    },
-    {
-      "node_id": "pennylane",
-      "branch": "Tech Stack Requirements",
-      "type": "quantum",
-      "title": "PennyLane",
-      "content": "Differentiable quantum programming interface for hybrid model training loops.",
-      "links": [
-        "quantum_ml",
-        "qml_papers"
-      ]
-    },
-    {
-      "node_id": "quantum_ml",
-      "branch": "Tech Stack Requirements",
-      "type": "tech",
-      "title": "Quantum Machine Learning",
-      "content": "Special entangled node connecting quantum concepts, papers, repositories, and course resources.",
-      "links": [
-        "doc_concepts",
-        "qml_papers",
-        "qml_github",
-        "qml_courses"
-      ]
-    },
-    {
-      "node_id": "google_research_papers",
-      "branch": "Research Papers",
-      "type": "paper-source",
-      "title": "Google Research",
-      "content": "Curated publications and applied research for advanced AI and quantum research programs.",
-      "links": [
-        "qml_papers",
-        "deep_learning_papers"
-      ],
-      "url": "https://research.google/publications/"
-    },
-    {
-      "node_id": "arxiv_papers",
-      "branch": "Research Papers",
-      "type": "paper-source",
-      "title": "Arxiv",
-      "content": "Preprint source for rapidly evolving quantum AI and hybrid modeling research.",
-      "links": [
-        "qml_papers",
-        "hybrid_models_papers"
-      ],
-      "url": "https://arxiv.org/"
-    },
-    {
-      "node_id": "papers_with_code",
-      "branch": "Research Papers",
-      "type": "paper-source",
-      "title": "PapersWithCode",
-      "content": "Benchmark-aware source that links papers to implementations and reproducibility assets.",
-      "links": [
-        "qml_papers",
-        "qml_github"
-      ],
-      "url": "https://paperswithcode.com/"
-    },
-    {
-      "node_id": "qml_papers",
+      "node_id": "paper_vqa_overview",
       "branch": "Research Papers",
       "type": "paper",
-      "title": "Quantum ML Papers",
-      "content": "Key readings on variational circuits, quantum kernels, and hybrid architectures.",
-      "links": [
-        "quantum_ml",
-        "qml_github",
-        "qml_courses"
+      "domain": "quantum",
+      "title": "Variational Quantum Algorithms",
+      "content": "Foundational reading for parameterized circuits, expressivity, and noisy optimization landscapes.",
+      "links": ["paper_barren_plateau", "stack_qiskit", "stack_pennylane"],
+      "resources": [
+        {
+          "type": "paper",
+          "title": "A Survey of Variational Quantum Algorithms",
+          "url": "https://arxiv.org/abs/2307.04734",
+          "source": "arXiv",
+          "summary": "Comprehensive survey of VQA methods and practical challenges.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
       ]
     },
     {
-      "node_id": "deep_learning_papers",
+      "node_id": "paper_barren_plateau",
       "branch": "Research Papers",
       "type": "paper",
-      "title": "Deep Learning Papers",
-      "content": "Foundational and modern deep learning papers for baseline and transfer comparisons.",
-      "links": [
-        "pytorch",
-        "hybrid_models_papers"
+      "domain": "quantum",
+      "title": "Barren Plateaus",
+      "content": "Key trainability constraints in deep parameterized quantum circuits and practical mitigation approaches.",
+      "links": ["doc_failure_modes", "stack_optax"],
+      "resources": [
+        {
+          "type": "paper",
+          "title": "Barren Plateaus in Quantum Neural Network Training Landscapes",
+          "url": "https://arxiv.org/abs/1803.11173",
+          "source": "arXiv",
+          "summary": "Canonical result describing exponentially vanishing gradients.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
       ]
     },
     {
-      "node_id": "hybrid_models_papers",
+      "node_id": "paper_qkernel",
       "branch": "Research Papers",
       "type": "paper",
-      "title": "Hybrid Models",
-      "content": "Cross-domain papers on combining classical attention layers with quantum circuits.",
-      "links": [
-        "quantum_ml",
-        "cirq",
-        "jax"
+      "domain": "shared",
+      "title": "Quantum Kernels",
+      "content": "Quantum kernel methods for supervised learning and feature-space expressivity analysis.",
+      "links": ["stack_pennylane", "dataset_classification_suite"],
+      "resources": [
+        {
+          "type": "paper",
+          "title": "Supervised Learning with Quantum-Enhanced Feature Spaces",
+          "url": "https://arxiv.org/abs/1804.11326",
+          "source": "arXiv",
+          "summary": "Introduces quantum-enhanced kernels for classification tasks.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
       ]
     },
     {
-      "node_id": "qml_github",
+      "node_id": "paper_transformer",
+      "branch": "Research Papers",
+      "type": "paper",
+      "domain": "ai",
+      "title": "Transformer Baselines",
+      "content": "Core transformer papers used as AI baselines before introducing quantum components.",
+      "links": ["stack_jax", "stack_pytorch", "repo_transformer_baselines"],
+      "resources": [
+        {
+          "type": "paper",
+          "title": "Attention Is All You Need",
+          "url": "https://arxiv.org/abs/1706.03762",
+          "source": "arXiv",
+          "summary": "Foundational transformer architecture.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "node_id": "paper_diffusion",
+      "branch": "Research Papers",
+      "type": "paper",
+      "domain": "ai",
+      "title": "Diffusion and Generative Models",
+      "content": "State-of-the-art generative modeling references useful for cross-domain representation studies.",
+      "links": ["stack_pytorch", "benchmark_tracking"],
+      "resources": [
+        {
+          "type": "paper",
+          "title": "Denoising Diffusion Probabilistic Models",
+          "url": "https://arxiv.org/abs/2006.11239",
+          "source": "arXiv",
+          "summary": "Baseline paper for diffusion generation methods.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "node_id": "repo_qiskit_ml",
       "branch": "GitHub Repositories",
       "type": "repo",
-      "title": "Quantum ML Repos",
-      "content": "Repository collection for production and experimental Quantum ML implementations.",
-      "links": [
-        "quantum_ml",
-        "qml_papers",
-        "jax"
-      ],
+      "domain": "quantum",
+      "title": "Qiskit Machine Learning",
+      "content": "Algorithms and examples for quantum kernels, neural networks, and feature maps in IBM stack.",
+      "links": ["stack_qiskit", "paper_qkernel"],
+      "url": "https://github.com/qiskit-community/qiskit-machine-learning"
+    },
+    {
+      "node_id": "repo_pennylane_demos",
+      "branch": "GitHub Repositories",
+      "type": "repo",
+      "domain": "shared",
+      "title": "PennyLane Demos",
+      "content": "High-quality demo implementations for hybrid models, optimization strategies, and quantum circuits.",
+      "links": ["stack_pennylane", "doc_playbook"],
+      "url": "https://github.com/PennyLaneAI/qml"
+    },
+    {
+      "node_id": "repo_jax_examples",
+      "branch": "GitHub Repositories",
+      "type": "repo",
+      "domain": "ai",
+      "title": "JAX/Flax Examples",
+      "content": "Reference training pipelines and performance-oriented model examples in JAX ecosystem.",
+      "links": ["stack_jax", "paper_transformer"],
+      "url": "https://github.com/google/flax/tree/main/examples"
+    },
+    {
+      "node_id": "repo_transformer_baselines",
+      "branch": "GitHub Repositories",
+      "type": "repo",
+      "domain": "ai",
+      "title": "Transformer Baseline Repos",
+      "content": "Canonical repos for baseline language and sequence models used for ablation against hybrid approaches.",
+      "links": ["paper_transformer", "stack_pytorch"],
+      "url": "https://github.com/huggingface/transformers"
+    },
+    {
+      "node_id": "repo_qml_toolkit",
+      "branch": "GitHub Repositories",
+      "type": "repo",
+      "domain": "shared",
+      "title": "Quantum-AI Toolkit",
+      "content": "A practical toolkit concept for orchestrating datasets, circuit configs, baselines, and reporting.",
+      "links": ["doc_system_map", "benchmark_tracking", "hybrid_training_loop"],
       "url": "https://github.com/topics/quantum-machine-learning"
     },
     {
-      "node_id": "ml_github",
-      "branch": "GitHub Repositories",
-      "type": "repo",
-      "title": "ML Projects",
-      "content": "General machine learning repositories for models, pipelines, and deployment references.",
-      "links": [
-        "pytorch",
-        "jax"
-      ],
-      "url": "https://github.com/topics/machine-learning"
-    },
-    {
-      "node_id": "tools_jax_optax",
-      "branch": "GitHub Repositories",
-      "type": "repo",
-      "title": "Tools (JAX, Optax, etc.)",
-      "content": "Ecosystem tools that support optimization, experimentation, and scalable training.",
-      "links": [
-        "jax",
-        "ml_github",
-        "quantum_ml"
-      ],
-      "url": "https://github.com/google-deepmind/optax"
-    },
-    {
-      "node_id": "youtube_research",
-      "branch": "Other Resources",
-      "type": "resource",
-      "title": "YouTube (Google Research, Quantum AI)",
-      "content": "Talks and explainers that connect practical engineering to active research outcomes.",
-      "links": [
-        "google_research_papers",
-        "qml_courses"
-      ],
-      "url": "https://www.youtube.com/@GoogleResearch"
-    },
-    {
-      "node_id": "qml_courses",
-      "branch": "Other Resources",
-      "type": "resource",
-      "title": "Courses",
-      "content": "Structured learning routes for Quantum ML foundations and implementation techniques.",
-      "links": [
-        "quantum_ml",
-        "doc_tutorials",
-        "qml_papers"
+      "node_id": "dataset_qg_jets",
+      "branch": "Benchmarks & Datasets",
+      "type": "dataset",
+      "domain": "quantum",
+      "title": "Quark-Gluon Jet Dataset",
+      "content": "High-energy physics benchmark used for classification experiments and cross-model comparisons.",
+      "links": ["paper_vqa_overview", "benchmark_tracking"],
+      "resources": [
+        {
+          "type": "resource",
+          "title": "Jet tagging datasets overview",
+          "url": "https://arxiv.org/abs/2202.03772",
+          "source": "HEP",
+          "summary": "Benchmark context for particle-physics ML tasks.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
       ]
     },
     {
-      "node_id": "blogs",
+      "node_id": "dataset_classification_suite",
+      "branch": "Benchmarks & Datasets",
+      "type": "dataset",
+      "domain": "shared",
+      "title": "Classification Benchmark Suite",
+      "content": "Tabular and vision benchmark set to compare classical and quantum-kernel performance under same splits.",
+      "links": ["paper_qkernel", "benchmark_tracking"]
+    },
+    {
+      "node_id": "benchmark_tracking",
+      "branch": "Benchmarks & Datasets",
+      "type": "benchmark",
+      "domain": "shared",
+      "title": "Experiment Tracking",
+      "content": "Track metrics, seeds, runtime, and hardware profile to keep Quantum/AI comparisons fair and reproducible.",
+      "links": ["hybrid_training_loop", "doc_failure_modes", "repo_qml_toolkit"],
+      "resources": [
+        {
+          "type": "doc",
+          "title": "Weights & Biases Reports",
+          "url": "https://wandb.ai/site/reports",
+          "source": "W&B",
+          "summary": "Structured experiment reporting and artifact tracking.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "node_id": "resource_courses",
       "branch": "Other Resources",
       "type": "resource",
-      "title": "Blogs",
-      "content": "Independent analyses, implementation notes, and trend breakdowns across AI and quantum.",
-      "links": [
-        "doc_overview",
-        "hybrid_models_papers"
+      "domain": "shared",
+      "title": "Courses and Study Paths",
+      "content": "A sequenced study path from linear algebra foundations to hybrid model implementation and evaluation.",
+      "links": ["doc_playbook", "paper_vqa_overview", "paper_transformer"],
+      "resources": [
+        {
+          "type": "course",
+          "title": "PennyLane Quantum ML Course",
+          "url": "https://pennylane.ai/qml/",
+          "source": "PennyLane",
+          "summary": "Hands-on course from fundamentals to advanced circuits.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        },
+        {
+          "type": "course",
+          "title": "Deep Learning Specialization",
+          "url": "https://www.coursera.org/specializations/deep-learning",
+          "source": "Coursera",
+          "summary": "Classical baseline model foundations.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "node_id": "resource_video",
+      "branch": "Other Resources",
+      "type": "resource",
+      "domain": "shared",
+      "title": "Talks and Video Lectures",
+      "content": "Research talks and implementation walk-throughs for both Quantum and AI paths.",
+      "links": ["resource_courses", "paper_vqa_overview", "paper_transformer"],
+      "resources": [
+        {
+          "type": "video",
+          "title": "Google Quantum AI Talks",
+          "url": "https://www.youtube.com/@GoogleQuantumAI",
+          "source": "YouTube",
+          "summary": "Quantum engineering and algorithm talks.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        },
+        {
+          "type": "video",
+          "title": "DeepMind Research Channel",
+          "url": "https://www.youtube.com/@GoogleDeepMind",
+          "source": "YouTube",
+          "summary": "AI systems and architecture research talks.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "node_id": "resource_blog",
+      "branch": "Other Resources",
+      "type": "resource",
+      "domain": "shared",
+      "title": "Research Blogs",
+      "content": "Readable updates, practical notes, and trend analysis around hybrid quantum-AI systems.",
+      "links": ["doc_system_map", "benchmark_tracking"],
+      "resources": [
+        {
+          "type": "blog",
+          "title": "IBM Quantum Blog",
+          "url": "https://www.ibm.com/quantum/blog",
+          "source": "IBM",
+          "summary": "Quantum hardware/software updates and case studies.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        },
+        {
+          "type": "blog",
+          "title": "Google Research Blog",
+          "url": "https://research.google/blog/",
+          "source": "Google",
+          "summary": "AI and systems research stories with practical context.",
+          "last_checked_at": "2026-03-21T00:00:00Z"
+        }
       ]
     }
   ],
   "domain_overrides": {
     "quantum": {
-      "doc_overview": {
-        "content": "Quantum page overview focused on circuits, simulators, and hybrid model design patterns."
+      "doc_system_map": {
+        "content": "Quantum focus: circuit depth budgeting, shot strategy, simulator-to-hardware transfer, and noise-aware evaluation."
       },
-      "quantum_ml": {
-        "content": "Quantum-first perspective: circuit design, measurement strategy, and model expressivity tradeoffs."
+      "hybrid_training_loop": {
+        "content": "Quantum loop: parameterized circuit forward pass + classical optimizer updates with shot-noise-aware metric tracking."
       },
-      "qml_github": {
-        "url": "https://github.com/topics/quantum-computing"
+      "resource_courses": {
+        "resources": [
+          {
+            "type": "course",
+            "title": "Qiskit Global Summer School",
+            "url": "https://qiskit.org/learn/",
+            "source": "IBM",
+            "summary": "Hands-on quantum algorithms and runtime workflows.",
+            "last_checked_at": "2026-03-21T00:00:00Z"
+          },
+          {
+            "type": "course",
+            "title": "Xanadu Codebook",
+            "url": "https://codebook.xanadu.ai/",
+            "source": "Xanadu",
+            "summary": "Practical notebook-style QML curriculum.",
+            "last_checked_at": "2026-03-21T00:00:00Z"
+          }
+        ]
       }
     },
     "ai": {
-      "doc_overview": {
-        "content": "AI page overview focused on model architecture, optimization, and research-to-production transfer."
+      "doc_system_map": {
+        "content": "AI focus: model scaling strategy, baseline parity, data quality constraints, and deployable inference architecture."
       },
-      "quantum_ml": {
-        "content": "AI-first perspective: feature learning, hybrid adaptation, and system-level evaluation for QML."
+      "hybrid_training_loop": {
+        "content": "AI loop: robust baseline modeling, distillation options, and hybrid augmentation under controlled experiments."
       },
-      "qml_github": {
-        "url": "https://github.com/topics/quantum-machine-learning"
+      "resource_courses": {
+        "resources": [
+          {
+            "type": "course",
+            "title": "Full Stack Deep Learning",
+            "url": "https://fullstackdeeplearning.com/",
+            "source": "FSDL",
+            "summary": "From experimentation to production-grade ML systems.",
+            "last_checked_at": "2026-03-21T00:00:00Z"
+          },
+          {
+            "type": "course",
+            "title": "Hugging Face NLP Course",
+            "url": "https://huggingface.co/learn/nlp-course",
+            "source": "Hugging Face",
+            "summary": "Transformer workflows and deployment-oriented NLP practice.",
+            "last_checked_at": "2026-03-21T00:00:00Z"
+          }
+        ]
       }
     }
   }

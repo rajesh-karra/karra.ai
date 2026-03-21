@@ -125,16 +125,42 @@ class HomeView(TemplateView):
 
     @staticmethod
     def _load_quantum_ai_graph() -> dict:
-        db_payload = HomeView._build_knowledge_graph_from_db()
-        if db_payload.get("nodes"):
-            return db_payload
-
         graph_path = Path(BASE_DIR) / "data" / "quantum_ai_graph.json"
+        file_payload = {"branches": [], "nodes": [], "domain_overrides": {}}
         if not graph_path.exists():
-            return {"branches": [], "nodes": [], "domain_overrides": {}}
+            db_payload = HomeView._build_knowledge_graph_from_db()
+            return db_payload if db_payload.get("nodes") else file_payload
 
         with graph_path.open("r", encoding="utf-8") as fp:
-            return json.load(fp)
+            file_payload = json.load(fp)
+
+        db_payload = HomeView._build_knowledge_graph_from_db()
+        if not db_payload.get("nodes"):
+            return file_payload
+
+        merged_nodes = {node.get("node_id"): node for node in db_payload.get("nodes", []) if node.get("node_id")}
+        for node in file_payload.get("nodes", []):
+            node_id = node.get("node_id")
+            if node_id:
+                merged_nodes[node_id] = node
+
+        merged_branches = list(
+            dict.fromkeys([
+                *db_payload.get("branches", []),
+                *file_payload.get("branches", []),
+            ])
+        )
+
+        merged_overrides = {
+            **db_payload.get("domain_overrides", {}),
+            **file_payload.get("domain_overrides", {}),
+        }
+
+        return {
+            "branches": merged_branches,
+            "nodes": list(merged_nodes.values()),
+            "domain_overrides": merged_overrides,
+        }
 
     @staticmethod
     def _highlight_keywords(text: str) -> str:
