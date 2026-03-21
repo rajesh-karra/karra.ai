@@ -37,18 +37,19 @@ class HomeView(TemplateView):
     template_name = "home.html"
 
     @staticmethod
-    def _build_knowledge_graph_from_db() -> dict:
+    def _build_knowledge_graph_from_db(use_cache: bool = True) -> dict:
         # Cache the entire knowledge graph for 5 minutes (300 seconds)
         # This dramatically reduces DB queries on high-traffic pages
         cache_key = "knowledge_graph_home_view"
-        cached_result = cache.get(cache_key)
-        
-        if cached_result is not None:
-            return cached_result
+        if use_cache:
+            cached_result = cache.get(cache_key)
+            if cached_result is not None:
+                return cached_result
         
         if not KnowledgeNode.objects.exists():
             result = {"branches": [], "nodes": [], "domain_overrides": {}}
-            cache.set(cache_key, result, 300)
+            if use_cache:
+                cache.set(cache_key, result, 300)
             return result
 
         node_queryset = KnowledgeNode.objects.select_related("branch", "topic")
@@ -119,22 +120,23 @@ class HomeView(TemplateView):
             "nodes": nodes,
             "domain_overrides": {},
         }
-        cache.set(cache_key, result, 300)  # Cache for 5 minutes
+        if use_cache:
+            cache.set(cache_key, result, 300)  # Cache for 5 minutes
         return result
 
 
     @staticmethod
-    def _load_quantum_ai_graph() -> dict:
+    def _load_quantum_ai_graph(use_cache: bool = True) -> dict:
         graph_path = Path(BASE_DIR) / "data" / "quantum_ai_graph.json"
         file_payload = {"branches": [], "nodes": [], "domain_overrides": {}}
         if not graph_path.exists():
-            db_payload = HomeView._build_knowledge_graph_from_db()
+            db_payload = HomeView._build_knowledge_graph_from_db(use_cache=use_cache)
             return db_payload if db_payload.get("nodes") else file_payload
 
         with graph_path.open("r", encoding="utf-8") as fp:
             file_payload = json.load(fp)
 
-        db_payload = HomeView._build_knowledge_graph_from_db()
+        db_payload = HomeView._build_knowledge_graph_from_db(use_cache=use_cache)
         if not db_payload.get("nodes"):
             return file_payload
 
@@ -324,7 +326,12 @@ class HomeView(TemplateView):
 
 class KnowledgeGraphAPIView(View):
     def get(self, request, *args, **kwargs):
-        return JsonResponse(HomeView._load_quantum_ai_graph())
+        refresh_requested = request.GET.get("refresh", "").lower() in {"1", "true", "yes"}
+        payload = HomeView._load_quantum_ai_graph(use_cache=not refresh_requested)
+        response = JsonResponse(payload)
+        if refresh_requested:
+            response["Cache-Control"] = "no-store, max-age=0"
+        return response
 
 
 class BlogListView(ListView):

@@ -151,6 +151,36 @@ function renderResourceSection(title, rows) {
     `;
 }
 
+function titleFromResourceType(type) {
+    const labels = {
+        paper: "Research Papers",
+        repo: "GitHub Repositories",
+        doc: "Documentation",
+        course: "Courses",
+        cookbook: "Cookbooks",
+        resource: "Other Resources",
+        video: "Videos",
+        blog: "Blogs",
+        dataset: "Datasets",
+        benchmark: "Benchmarks",
+    };
+    return labels[type] || type.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function nodeContentScore(node) {
+    if (!node) return 0;
+    const resources = Array.isArray(node.resources) ? node.resources.length : 0;
+    const tech = Array.isArray(node.tech_stack) ? node.tech_stack.length : 0;
+    const links = Array.isArray(node.links) ? node.links.length : 0;
+    const hasUrl = node.url ? 1 : 0;
+    return resources * 4 + tech * 3 + links * 2 + hasUrl;
+}
+
+function pickBestNode(nodes) {
+    if (!nodes.length) return null;
+    return [...nodes].sort((a, b) => nodeContentScore(b) - nodeContentScore(a))[0];
+}
+
 function renderTechStackSection(rows) {
     if (!rows || !rows.length) return "";
 
@@ -339,7 +369,8 @@ function initWorkspace(shell) {
             button.addEventListener("click", () => {
                 activeBranch = button.dataset.branch || BRANCHES[0];
                 const branchNodes = getBranchNodes(activeBranch);
-                activeNodeId = branchNodes[0]?.node_id || null;
+                const bestNode = pickBestNode(branchNodes);
+                activeNodeId = bestNode?.node_id || null;
                 renderAll();
             });
         });
@@ -413,16 +444,13 @@ function initWorkspace(shell) {
             : "";
 
         const resourcesByType = mapResourcesByType(node.resources || []);
-        const resourceSections = [
-            renderResourceSection("Research Papers", resourcesByType.paper),
-            renderResourceSection("GitHub Repositories", resourcesByType.repo),
-            renderResourceSection("Documentation", resourcesByType.doc),
-            renderResourceSection("Courses", resourcesByType.course),
-            renderResourceSection("Cookbooks", resourcesByType.cookbook),
-            renderResourceSection("Other Resources", resourcesByType.resource),
-            renderResourceSection("Videos", resourcesByType.video),
-            renderResourceSection("Blogs", resourcesByType.blog),
-        ].join("");
+        const preferredOrder = ["paper", "repo", "doc", "course", "cookbook", "resource", "video", "blog", "dataset", "benchmark"];
+        const availableTypes = Object.keys(resourcesByType);
+        const orderedTypes = [
+            ...preferredOrder.filter((type) => availableTypes.includes(type)),
+            ...availableTypes.filter((type) => !preferredOrder.includes(type)).sort(),
+        ];
+        const resourceSections = orderedTypes.map((type) => renderResourceSection(titleFromResourceType(type), resourcesByType[type])).join("");
 
         const techSection = renderTechStackSection(node.tech_stack || []);
         renderLiveHero(node, linkedNodes);
@@ -593,7 +621,8 @@ function initWorkspace(shell) {
 
         const validNode = nodeMap.get(activeNodeId);
         if (!validNode || !getBranchNodes(activeBranch).some((item) => item.node_id === activeNodeId)) {
-            activeNodeId = getBranchNodes(activeBranch)[0]?.node_id || null;
+            const bestNode = pickBestNode(getBranchNodes(activeBranch));
+            activeNodeId = bestNode?.node_id || null;
         }
     }
 
@@ -612,7 +641,8 @@ function initWorkspace(shell) {
     async function refreshFromApi() {
         if (!graphEndpoint) return;
         try {
-            const response = await fetch(graphEndpoint, { cache: "no-store" });
+            const endpoint = `${graphEndpoint}?refresh=1&t=${Date.now()}`;
+            const response = await fetch(endpoint, { cache: "no-store" });
             if (!response.ok) return;
             const latestPayload = await response.json();
             applyPayload(latestPayload);
@@ -637,7 +667,8 @@ function initWorkspace(shell) {
 
     activeNodeId = null;
     renderAll();
-    setInterval(refreshFromApi, 120000);
+    refreshFromApi();
+    setInterval(refreshFromApi, 30000);
 }
 
 applyPayload(payload);

@@ -43,6 +43,8 @@ urlpatterns = [
     path("admin/login/", admin_login_passthrough, name="admin-login"),
     path("admin/", admin.site.urls),
     path("accounts/login/", RedirectView.as_view(url="/admin/login/", permanent=False)),
+    path("home", RedirectView.as_view(url="/", permanent=False)),
+    path("home/", RedirectView.as_view(url="/", permanent=False)),
     path("", HomeView.as_view(), name="home"),
     path("blog/", BlogListView.as_view(), name="blog-list"),
     path("blog/write/", BlogCreateView.as_view(), name="blog-write"),
