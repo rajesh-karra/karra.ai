@@ -1,5 +1,7 @@
 import re
 import json
+import os
+import requests
 from html import escape
 from pathlib import Path
 
@@ -8,6 +10,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils.safestring import mark_safe
+from django.utils.dateparse import parse_datetime
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, TemplateView
 from django.urls import reverse
@@ -35,6 +38,181 @@ _URL_BARE_PATTERN = re.compile(r"(?<![\"'=])(https?://[^\s<]+)")
 
 class HomeView(TemplateView):
     template_name = "home.html"
+
+    @staticmethod
+    def _node_category_letter(node: dict) -> str:
+        candidate = (node.get("category") or node.get("branch") or node.get("title") or "").strip()
+        letter = candidate[:1].upper() if candidate else ""
+        return letter if letter.isalpha() and len(letter) == 1 else "O"
+
+    @classmethod
+    def _build_qa_bootstrap(cls, graph_payload: dict) -> dict:
+        nodes = graph_payload.get("nodes", []) or []
+        all_nodes_by_id = {
+            node.get("node_id"): node
+            for node in nodes
+            if isinstance(node, dict) and node.get("node_id")
+        }
+
+        def for_domain(domain: str) -> dict:
+            visible = [
+                node
+                for node in nodes
+                if isinstance(node, dict) and node.get("domain") in {domain, "shared"}
+            ]
+            visible.sort(key=lambda item: (item.get("title") or "").lower())
+
+            topics = [
+                {
+                    "node_id": item.get("node_id"),
+                    "title": item.get("title") or "Untitled",
+                    "category": cls._node_category_letter(item),
+                }
+                for item in visible
+                if item.get("node_id")
+            ]
+
+            active = visible[0] if visible else None
+            if not active:
+                return {
+                    "topics": [],
+                    "active": None,
+                    "entangled": [],
+                }
+
+            linked_ids = list(active.get("links") or [])
+            reverse_ids = [
+                item.get("node_id")
+                for item in nodes
+                if isinstance(item, dict) and active.get("node_id") in (item.get("links") or [])
+            ]
+            entangled_ids = []
+            seen = set()
+            for node_id in [*linked_ids, *reverse_ids]:
+                if not node_id or node_id in seen:
+                    continue
+                seen.add(node_id)
+                entangled_ids.append(node_id)
+
+            entangled = []
+            for node_id in entangled_ids:
+                target = all_nodes_by_id.get(node_id)
+                if not target:
+                    continue
+                entangled.append(
+                    {
+                        "node_id": target.get("node_id"),
+                        "title": target.get("title") or "Untitled",
+                        "branch": target.get("branch") or "General",
+                        "is_cross": target.get("domain") not in {domain, "shared"},
+                    }
+                )
+
+            return {
+                "topics": topics,
+                "active": {
+                    "node_id": active.get("node_id"),
+                    "title": active.get("title") or "Untitled",
+                    "content": active.get("content") or "",
+                    "branch": active.get("branch") or "General",
+                    "domain": active.get("domain") or "shared",
+                    "category": cls._node_category_letter(active),
+                    "url": active.get("url") or "",
+                },
+                "entangled": entangled,
+            }
+
+        return {
+            "quantum": for_domain("quantum"),
+            "ai": for_domain("ai"),
+        }
+
+    @staticmethod
+    def _github_headers() -> dict:
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "karra-ai-portfolio",
+        }
+        token = (os.getenv("GITHUB_TOKEN") or "").strip()
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        return headers
+
+    @staticmethod
+    def _fetch_github_json(url: str):
+        response = requests.get(
+            url,
+            timeout=12,
+            headers=HomeView._github_headers(),
+        )
+        response.raise_for_status()
+        return response.json()
+
+    @classmethod
+    def _build_live_github_context(cls, github_username: str) -> dict | None:
+        cache_key = f"github_live_home_{github_username}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        try:
+            user = cls._fetch_github_json(f"https://api.github.com/users/{github_username}")
+            organizations = cls._fetch_github_json(f"https://api.github.com/users/{github_username}/orgs")
+            repositories = cls._fetch_github_json(
+                f"https://api.github.com/users/{github_username}/repos?type=owner&sort=updated&per_page=100"
+            )
+        except requests.RequestException:
+            return None
+
+        profile_payload = {
+            "github_username": github_username,
+            "name": user.get("name") or github_username,
+            "bio": user.get("bio") or "",
+            "company": user.get("company") or "",
+            "location": user.get("location") or "",
+            "blog_url": user.get("blog") or "",
+            "twitter_username": user.get("twitter_username") or "",
+            "email": user.get("email") or "",
+            "hireable": user.get("hireable"),
+            "avatar_url": user.get("avatar_url") or "",
+            "github_url": user.get("html_url") or f"https://github.com/{github_username}",
+            "followers": user.get("followers") or 0,
+            "following": user.get("following") or 0,
+            "public_repos": user.get("public_repos") or 0,
+            "public_gists": user.get("public_gists") or 0,
+            "account_created_at": parse_datetime(user.get("created_at")) if user.get("created_at") else None,
+            "account_updated_at": parse_datetime(user.get("updated_at")) if user.get("updated_at") else None,
+        }
+
+        org_payload = [
+            {
+                "login": org.get("login") or "",
+                "url": org.get("html_url") or "",
+                "avatar_url": org.get("avatar_url") or "",
+            }
+            for org in organizations
+        ]
+
+        repo_payload = [
+            {
+                "name": repo.get("name") or "",
+                "url": repo.get("html_url") or "",
+                "description": repo.get("description") or "",
+                "language": repo.get("language") or "",
+                "stargazers_count": repo.get("stargazers_count") or 0,
+                "forks_count": repo.get("forks_count") or 0,
+                "pushed_at": parse_datetime(repo.get("pushed_at")) if repo.get("pushed_at") else None,
+            }
+            for repo in repositories
+        ]
+
+        result = {
+            "profile": profile_payload,
+            "github_organizations": org_payload,
+            "github_repositories": repo_payload,
+        }
+        cache.set(cache_key, result, 600)
+        return result
 
     @staticmethod
     def _build_knowledge_graph_from_db(use_cache: bool = True) -> dict:
@@ -301,19 +479,26 @@ class HomeView(TemplateView):
         context = super().get_context_data(**kwargs)
 
         profile = Profile.objects.first()
+        github_username = profile.github_username if profile and profile.github_username else "r-karra"
+        live_github = self._build_live_github_context(github_username)
         learning_path = LearningPathContent.objects.first()
 
-        context["profile"] = profile
+        context["profile"] = live_github["profile"] if live_github else profile
         context["learning_path"] = learning_path
         learning_path_html, learning_path_toc = self._format_learning_path_html(
             learning_path.body if learning_path else None
         )
         context["learning_path_html"] = learning_path_html
         context["learning_path_toc"] = learning_path_toc
-        context["github_organizations"] = profile.organizations.all() if profile else []
-        context["github_repositories"] = profile.repositories.all() if profile else []
+        context["github_organizations"] = (
+            live_github["github_organizations"] if live_github else (profile.organizations.all() if profile else [])
+        )
+        context["github_repositories"] = (
+            live_github["github_repositories"] if live_github else (profile.repositories.all() if profile else [])
+        )
         context["scenario"] = self._build_scenario_context()
         context["quantum_ai_graph"] = self._load_quantum_ai_graph()
+        context["qa_bootstrap"] = self._build_qa_bootstrap(context["quantum_ai_graph"])
 
         domain_data = {
             ResourceItem.Domain.QUANTUM: self._build_domain_payload(ResourceItem.Domain.QUANTUM),

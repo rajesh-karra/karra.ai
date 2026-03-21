@@ -2,6 +2,7 @@ const tabButtons = document.querySelectorAll(".tab-button");
 const tabPanels = document.querySelectorAll(".tab-panel");
 const headerEntangledToggle = document.querySelector(".entangled-symbol");
 const payloadElement = document.getElementById("qa-graph-data");
+const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 let payload = { branches: [], nodes: [], domain_overrides: {} };
 if (payloadElement?.textContent) {
@@ -12,31 +13,12 @@ if (payloadElement?.textContent) {
     }
 }
 
-let BRANCHES = [];
 let BASE_NODES = [];
 let DOMAIN_OVERRIDES = {};
-
-const FALLBACK_BRANCHES = [
-    "Documentation",
-    "Tech Stack Requirements",
-    "Research Papers",
-    "GitHub Repositories",
-    "Other Resources",
-];
-
-const BRANCH_ICONS = {
-    Documentation: "DOC",
-    "Tech Stack Requirements": "STACK",
-    "Research Papers": "PAPER",
-    "GitHub Repositories": "GIT",
-    "Other Resources": "RES",
-};
-
 const workspaceRegistry = {};
 
 function applyPayload(nextPayload) {
     payload = nextPayload || { branches: [], nodes: [], domain_overrides: {} };
-    BRANCHES = payload.branches?.length ? payload.branches : FALLBACK_BRANCHES;
     BASE_NODES = payload.nodes || [];
     DOMAIN_OVERRIDES = payload.domain_overrides || {};
 }
@@ -56,12 +38,501 @@ function activateTab(targetId) {
     });
 
     if (window.location.hash !== `#${targetId}`) {
-        window.history.replaceState(null, "", `#${targetId}`);
+        const url = `${window.location.pathname}${window.location.search}#${targetId}`;
+        window.history.replaceState(null, "", url);
     }
 }
 
+function readDomainQueryState(domain) {
+    const params = new URLSearchParams(window.location.search);
+    return {
+        letter: params.get(`${domain}Letter`) || null,
+        search: params.get(`${domain}Search`) || "",
+        nodeId: params.get(`${domain}Node`) || null,
+    };
+}
+
+function writeDomainQueryState(domain, state) {
+    const params = new URLSearchParams(window.location.search);
+    const mappings = [
+        { key: `${domain}Letter`, value: state.letter || "" },
+        { key: `${domain}Search`, value: state.search || "" },
+        { key: `${domain}Node`, value: state.nodeId || "" },
+    ];
+
+    mappings.forEach(({ key, value }) => {
+        if (value) {
+            params.set(key, value);
+        } else {
+            params.delete(key);
+        }
+    });
+
+    const query = params.toString();
+    const hash = window.location.hash || "";
+    const url = `${window.location.pathname}${query ? `?${query}` : ""}${hash}`;
+    window.history.replaceState(null, "", url);
+}
+
+function isTextInputTarget(target) {
+    if (!target) return false;
+    if (target.isContentEditable) return true;
+    const tag = (target.tagName || "").toLowerCase();
+    return tag === "input" || tag === "textarea" || tag === "select";
+}
+
+function triggerPanelAnimation(element) {
+    if (!element) return;
+    element.classList.remove("qa-panel-anim");
+    // Force reflow to restart animation class reliably.
+    void element.offsetWidth;
+    element.classList.add("qa-panel-anim");
+}
+
+function buildDomainNodes(domain) {
+    const overrides = DOMAIN_OVERRIDES[domain] || {};
+    return BASE_NODES
+        .map((node) => {
+            const update = overrides[node.node_id] || {};
+            const merged = {
+                ...node,
+                ...update,
+                links: update.links || node.links || [],
+                resources: update.resources || node.resources || [],
+                tech_stack: update.tech_stack || node.tech_stack || [],
+                domain: node.domain || "shared",
+            };
+            return merged;
+        })
+        .filter((node) => node.domain === domain || node.domain === "shared");
+}
+
+function dedupeByNodeId(nodes) {
+    const seen = new Set();
+    return nodes.filter((node) => {
+        if (!node || seen.has(node.node_id)) return false;
+        seen.add(node.node_id);
+        return true;
+    });
+}
+
+function nodeCategory(node) {
+    const candidate = (node.category || node.branch || node.title || "").trim();
+    const letter = candidate.charAt(0).toUpperCase();
+    return /^[A-Z]$/.test(letter) ? letter : "O";
+}
+
+function sortNodes(nodes) {
+    return [...nodes].sort((a, b) => {
+        const byTitle = (a.title || "").localeCompare(b.title || "");
+        if (byTitle !== 0) return byTitle;
+        return (a.node_id || "").localeCompare(b.node_id || "");
+    });
+}
+
+function badgeForDomain(domain) {
+    if (domain === "quantum") return "Quantum";
+    if (domain === "ai") return "AI";
+    return "Shared";
+}
+
+function mapResourcesByType(resources) {
+    const mapped = {};
+    (resources || []).forEach((resource) => {
+        const key = resource.type || "resource";
+        if (!mapped[key]) mapped[key] = [];
+        mapped[key].push(resource);
+    });
+    return mapped;
+}
+
+function titleFromResourceType(type) {
+    const labels = {
+        paper: "Research Papers",
+        repo: "GitHub Repositories",
+        doc: "Documentation",
+        course: "Courses",
+        resource: "Resources",
+        video: "Videos",
+        blog: "Blogs",
+        dataset: "Datasets",
+        benchmark: "Benchmarks",
+        cookbook: "Cookbooks",
+    };
+    return labels[type] || type.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function renderResourceGroups(node) {
+    const resourcesByType = mapResourcesByType(node.resources || []);
+    const order = ["doc", "paper", "repo", "course", "video", "blog", "dataset", "benchmark", "cookbook", "resource"];
+    const keys = Object.keys(resourcesByType);
+    const ordered = [
+        ...order.filter((item) => keys.includes(item)),
+        ...keys.filter((item) => !order.includes(item)).sort(),
+    ];
+
+    return ordered
+        .map((type) => {
+            const rows = resourcesByType[type] || [];
+            const items = rows
+                .slice(0, 6)
+                .map((entry) => {
+                    const name = entry.url
+                        ? `<a href="${entry.url}" target="_blank" rel="noreferrer">${entry.title}</a>`
+                        : entry.title;
+                    return `<li>${name}</li>`;
+                })
+                .join("");
+
+            return `
+                <section class="qa-mini-section">
+                    <h4>${titleFromResourceType(type)}</h4>
+                    <ul>${items}</ul>
+                </section>
+            `;
+        })
+        .join("");
+}
+
+function initWorkspace(shell) {
+    const domain = shell.dataset.domain;
+    const graphEndpoint = shell.dataset.graphEndpoint;
+    const azNavEl = shell.querySelector(".qa-az-nav");
+    const listEl = shell.querySelector(".qa-topic-list");
+    const centerEl = shell.querySelector(".qa-center");
+    const entangledEl = shell.querySelector(".qa-entangled-list");
+    const searchEl = shell.querySelector(".qa-search-input");
+
+    if (!azNavEl || !listEl || !centerEl || !entangledEl || !domain) return;
+
+    let nodes = [];
+    let nodeMap = new Map();
+    let selectedLetter = null;
+    let activeNodeId = null;
+    let searchTerm = "";
+
+    function hydrateNodes() {
+        nodes = sortNodes(buildDomainNodes(domain));
+        nodeMap = new Map(nodes.map((node) => [node.node_id, node]));
+    }
+
+    function filteredNodes() {
+        return nodes.filter((node) => {
+            const byLetter = selectedLetter ? nodeCategory(node) === selectedLetter : true;
+            if (!byLetter) return false;
+
+            if (!searchTerm) return true;
+            const haystack = [
+                node.title || "",
+                node.content || "",
+                node.branch || "",
+                node.type || "",
+            ]
+                .join(" ")
+                .toLowerCase();
+            return haystack.includes(searchTerm.toLowerCase());
+        });
+    }
+
+    function normalizeSelectedLetter(value) {
+        if (!value) return null;
+        const letter = String(value).trim().toUpperCase();
+        return alphabet.includes(letter) ? letter : null;
+    }
+
+    function countsByLetter() {
+        const counts = {};
+        nodes.forEach((node) => {
+            const key = nodeCategory(node);
+            counts[key] = (counts[key] || 0) + 1;
+        });
+        return counts;
+    }
+
+    function findEntangledNodes(node) {
+        if (!node) return [];
+        const direct = (node.links || []).map((id) => BASE_NODES.find((entry) => entry.node_id === id)).filter(Boolean);
+        const reverse = BASE_NODES.filter((entry) => (entry.links || []).includes(node.node_id));
+        return dedupeByNodeId([...direct, ...reverse]).filter((entry) => entry.node_id !== node.node_id);
+    }
+
+    function ensureActiveNode() {
+        let candidates = filteredNodes();
+        if (!candidates.length && (selectedLetter || searchTerm)) {
+            selectedLetter = null;
+            searchTerm = "";
+            candidates = filteredNodes();
+        }
+
+        if (!candidates.length) {
+            activeNodeId = null;
+            return;
+        }
+
+        const stillVisible = candidates.some((node) => node.node_id === activeNodeId);
+        if (!stillVisible) {
+            activeNodeId = candidates[0].node_id;
+        }
+    }
+
+    function navigateToNode(targetNode) {
+        if (!targetNode) return;
+        const targetDomain = targetNode.domain === "shared" ? domain : targetNode.domain;
+        const targetWorkspace = workspaceRegistry[targetDomain];
+
+        if (targetWorkspace && targetDomain !== domain) {
+            activateTab(targetDomain);
+            targetWorkspace.focusNode(targetNode.node_id);
+            return;
+        }
+
+        selectedLetter = nodeCategory(targetNode);
+        activeNodeId = targetNode.node_id;
+        renderAll();
+    }
+
+    function renderAlphabet() {
+        const counts = countsByLetter();
+        const letters = alphabet
+            .map((letter) => {
+                const count = counts[letter] || 0;
+                const active = selectedLetter === letter;
+                return `
+                    <button class="qa-az-btn${active ? " active" : ""}" data-letter="${letter}">
+                        <span>${letter}</span>
+                        <small>${count}</small>
+                    </button>
+                `;
+            })
+            .join("");
+
+        azNavEl.innerHTML = `
+            <div class="qa-az-track">${letters}</div>
+            <button class="qa-az-reset${selectedLetter ? " active" : ""}" data-reset="all">ALL</button>
+        `;
+
+        azNavEl.querySelectorAll(".qa-az-btn").forEach((button) => {
+            button.addEventListener("click", () => {
+                selectedLetter = button.dataset.letter || null;
+                renderAll();
+            });
+        });
+
+        const resetBtn = azNavEl.querySelector(".qa-az-reset");
+        if (resetBtn) {
+            resetBtn.addEventListener("click", () => {
+                selectedLetter = null;
+                renderAll();
+            });
+        }
+    }
+
+    function renderSearch() {
+        if (!searchEl) return;
+        if (searchEl.value !== searchTerm) {
+            searchEl.value = searchTerm;
+        }
+    }
+
+    function renderTopicList() {
+        const rows = filteredNodes();
+        if (!rows.length) {
+            listEl.innerHTML = "<p class='qa-empty'>No topics found for this filter.</p>";
+            return;
+        }
+
+        listEl.innerHTML = rows
+            .map((node) => {
+                const category = nodeCategory(node);
+                return `
+                    <button class="qa-topic-item${node.node_id === activeNodeId ? " active" : ""}" data-node-id="${node.node_id}">
+                        <span class="qa-topic-letter">${category}</span>
+                        <strong>${node.title}</strong>
+                    </button>
+                `;
+            })
+            .join("");
+
+        listEl.querySelectorAll(".qa-topic-item").forEach((button) => {
+            button.addEventListener("click", () => {
+                activeNodeId = button.dataset.nodeId;
+                renderAll();
+            });
+        });
+    }
+
+    function renderCenter() {
+        const node = nodeMap.get(activeNodeId);
+        if (!node) {
+            centerEl.innerHTML = "<p class='qa-empty'>Select a topic to view content.</p>";
+            triggerPanelAnimation(centerEl);
+            return;
+        }
+
+        const links = findEntangledNodes(node);
+        const chips = links
+            .map((entry) => `<button class="qa-chip" data-node-id="${entry.node_id}">${entry.title}</button>`)
+            .join("");
+
+        const source = node.url
+            ? `<a class="qa-source-link" href="${node.url}" target="_blank" rel="noreferrer">Open source</a>`
+            : "";
+
+        const resources = renderResourceGroups(node);
+
+        centerEl.innerHTML = `
+            <header class="qa-center-head">
+                <h1>${node.title}</h1>
+                <div class="qa-center-meta">
+                    <span>${badgeForDomain(node.domain)}</span>
+                    <span>${node.branch || "General"}</span>
+                    <span>${nodeCategory(node)}</span>
+                </div>
+            </header>
+            <p class="qa-center-content">${node.content || "No details yet."}</p>
+            ${source}
+            <section class="qa-chip-wrap">
+                <h4>Entangled links</h4>
+                <div class="qa-chip-row">${chips || "<span class='qa-empty-inline'>No direct links.</span>"}</div>
+            </section>
+            <section class="qa-mini-grid">${resources}</section>
+        `;
+
+        centerEl.querySelectorAll(".qa-chip").forEach((chip) => {
+            chip.addEventListener("click", () => {
+                const target = BASE_NODES.find((entry) => entry.node_id === chip.dataset.nodeId);
+                navigateToNode(target);
+            });
+        });
+
+        triggerPanelAnimation(centerEl);
+    }
+
+    function renderEntangledPanel() {
+        const node = nodeMap.get(activeNodeId);
+        const rows = findEntangledNodes(node);
+        if (!rows.length) {
+            entangledEl.innerHTML = "<p class='qa-empty'>No connections</p>";
+            return;
+        }
+
+        entangledEl.innerHTML = rows
+            .map((entry) => {
+                const isCross = entry.domain !== domain && entry.domain !== "shared";
+                return `
+                    <button class="qa-entangled-item" data-node-id="${entry.node_id}">
+                        <span>${entry.branch || "General"}</span>
+                        <strong>${entry.title}</strong>
+                        <small>${isCross ? "Cross Domain" : "Local"}</small>
+                    </button>
+                `;
+            })
+            .join("");
+
+        entangledEl.querySelectorAll(".qa-entangled-item").forEach((button) => {
+            button.addEventListener("click", () => {
+                const target = BASE_NODES.find((entry) => entry.node_id === button.dataset.nodeId);
+                navigateToNode(target);
+            });
+        });
+    }
+
+    function renderAll() {
+        hydrateNodes();
+        if (!nodes.length) {
+            // Keep server-rendered fallback content when payload is unavailable.
+            return;
+        }
+        ensureActiveNode();
+        renderSearch();
+        renderAlphabet();
+        renderTopicList();
+        renderCenter();
+        renderEntangledPanel();
+        writeDomainQueryState(domain, {
+            letter: selectedLetter,
+            search: searchTerm,
+            nodeId: activeNodeId,
+        });
+    }
+
+    async function refreshFromApi() {
+        if (!graphEndpoint) return;
+        try {
+            const endpoint = `${graphEndpoint}?t=${Date.now()}`;
+            const response = await fetch(endpoint, { cache: "default" });
+            if (!response.ok) return;
+            const latestPayload = await response.json();
+            applyPayload(latestPayload);
+            Object.values(workspaceRegistry).forEach((workspace) => workspace.rerender());
+        } catch (_error) {
+            // Keep existing UI state on request errors.
+        }
+    }
+
+    function focusNode(nodeId) {
+        const target = BASE_NODES.find((entry) => entry.node_id === nodeId);
+        if (!target) return;
+        selectedLetter = nodeCategory(target);
+        activeNodeId = target.node_id;
+        renderAll();
+    }
+
+    function focusSearch() {
+        if (!searchEl) return;
+        searchEl.focus();
+        searchEl.select();
+    }
+
+    function moveSelection(direction) {
+        const rows = filteredNodes();
+        if (!rows.length) return;
+
+        const currentIndex = rows.findIndex((node) => node.node_id === activeNodeId);
+        const fallback = direction > 0 ? 0 : rows.length - 1;
+        const fromIndex = currentIndex === -1 ? fallback : currentIndex;
+        const nextIndex = Math.min(Math.max(fromIndex + direction, 0), rows.length - 1);
+
+        activeNodeId = rows[nextIndex].node_id;
+        renderAll();
+    }
+
+    function openFirstEntangled() {
+        const current = nodeMap.get(activeNodeId);
+        if (!current) return;
+        const linked = findEntangledNodes(current);
+        if (!linked.length) return;
+        navigateToNode(linked[0]);
+    }
+
+    workspaceRegistry[domain] = {
+        focusNode,
+        rerender: renderAll,
+        focusSearch,
+        moveSelection,
+        openFirstEntangled,
+    };
+
+    const initialState = readDomainQueryState(domain);
+    selectedLetter = normalizeSelectedLetter(initialState.letter);
+    searchTerm = initialState.search;
+    activeNodeId = initialState.nodeId;
+
+    if (searchEl) {
+        searchEl.addEventListener("input", () => {
+            searchTerm = searchEl.value.trim();
+            renderAll();
+        });
+    }
+
+    renderAll();
+}
+
 tabButtons.forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+        if ((button.tagName || "").toLowerCase() === "a") {
+            event.preventDefault();
+        }
         const targetId = button.dataset.tab;
         if (!targetId) return;
         activateTab(targetId);
@@ -85,561 +556,6 @@ if (headerEntangledToggle) {
     });
 }
 
-function buildDomainNodes(domain) {
-    const overrides = DOMAIN_OVERRIDES[domain] || {};
-    return BASE_NODES.map((node) => {
-        const update = overrides[node.node_id] || {};
-        return {
-            ...node,
-            ...update,
-            links: update.links || node.links || [],
-            resources: update.resources || node.resources || [],
-            tech_stack: update.tech_stack || node.tech_stack || [],
-            cookbooks: update.cookbooks || node.cookbooks || [],
-            domain: node.domain || "shared",
-        };
-    });
-}
-
-function dedupeByNodeId(nodes) {
-    const seen = new Set();
-    return nodes.filter((node) => {
-        if (!node || seen.has(node.node_id)) return false;
-        seen.add(node.node_id);
-        return true;
-    });
-}
-
-function mapResourcesByType(resources) {
-    const mapped = {};
-    resources.forEach((resource) => {
-        const key = resource.type || "resource";
-        if (!mapped[key]) {
-            mapped[key] = [];
-        }
-        mapped[key].push(resource);
-    });
-    return mapped;
-}
-
-function renderResourceSection(title, rows) {
-    if (!rows || !rows.length) return "";
-
-    const cards = rows
-        .map((entry) => {
-            const source = entry.source || "source";
-            const summary = entry.summary || "";
-            const linkTitle = entry.url
-                ? `<a href="${entry.url}" target="_blank" rel="noreferrer">${entry.title}</a>`
-                : entry.title;
-
-            return `
-                <article class="qa-resource-card">
-                    <h6>${linkTitle}</h6>
-                    <p>${summary}</p>
-                    <span>${source}</span>
-                </article>
-            `;
-        })
-        .join("");
-
-    return `
-        <section class="qa-resource-wrap">
-            <h5>${title}</h5>
-            <div class="qa-resource-grid">${cards}</div>
-        </section>
-    `;
-}
-
-function renderTechStackSection(rows) {
-    if (!rows || !rows.length) return "";
-
-    const cards = rows
-        .map((entry) => {
-            const docs = entry.docs_url
-                ? `<a href="${entry.docs_url}" target="_blank" rel="noreferrer">Docs</a>`
-                : "-";
-            const homepage = entry.homepage_url
-                ? `<a href="${entry.homepage_url}" target="_blank" rel="noreferrer">Home</a>`
-                : "-";
-            const role = entry.is_primary ? "Primary" : "Support";
-
-            return `
-                <article class="qa-stack-card${entry.is_primary ? " primary" : ""}">
-                    <p>${entry.category}</p>
-                    <h6>${entry.name}</h6>
-                    <div class="qa-stack-meta">
-                        <span>${role}</span>
-                        <span>${docs}</span>
-                        <span>${homepage}</span>
-                    </div>
-                </article>
-            `;
-        })
-        .join("");
-
-    return `
-        <section class="qa-resource-wrap">
-            <h5>Tech Stack</h5>
-            <div class="qa-stack-grid">${cards}</div>
-        </section>
-    `;
-}
-
-function initWorkspace(shell) {
-    const domain = shell.dataset.domain;
-    const graphEndpoint = shell.dataset.graphEndpoint;
-    const branchesEl = shell.querySelector(".qa-branches");
-    const branchTitleEl = shell.querySelector(".qa-branch-title");
-    const heroEl = shell.querySelector(".qa-live-hero");
-    const listEl = shell.querySelector(".qa-node-list");
-    const detailEl = shell.querySelector(".qa-node-detail");
-    const relatedEl = shell.querySelector(".qa-related");
-    const statsEl = shell.querySelector(".qa-stats");
-    const graphEl = shell.querySelector(".qa-graph");
-
-    if (!branchesEl || !branchTitleEl || !listEl || !detailEl || !relatedEl || !graphEl) return;
-
-    let nodes = [];
-    let nodeMap = new Map();
-    let activeBranch = BRANCHES[0];
-    let activeNodeId = null;
-
-    function reloadGraphData() {
-        nodes = buildDomainNodes(domain);
-        nodeMap = new Map(nodes.map((node) => [node.node_id, node]));
-    }
-
-    function getBranchNodes(branch) {
-        return nodes.filter((node) => {
-            const branchMatch = node.branch === branch;
-            const domainMatch = node.domain === domain || node.domain === "shared";
-            return branchMatch && domainMatch;
-        });
-    }
-
-    function findEntangledNodes(node) {
-        if (!node) return [];
-        const linked = (node.links || []).map((id) => nodeMap.get(id)).filter(Boolean);
-        const reverseLinked = nodes.filter((candidate) => (candidate.links || []).includes(node.node_id));
-        const sameBranchCrossDomain = nodes.filter(
-            (candidate) =>
-                candidate.branch === node.branch &&
-                candidate.node_id !== node.node_id &&
-                candidate.domain !== node.domain &&
-                candidate.domain !== "shared",
-        );
-
-        return dedupeByNodeId([...linked, ...reverseLinked, ...sameBranchCrossDomain]).filter(
-            (candidate) => candidate.node_id !== node.node_id,
-        );
-    }
-
-    function hasCrossDomainEntanglement(node) {
-        if (!node) return false;
-        if (node.is_live_entangled) return true;
-
-        const hasOutgoing = (node.links || []).some((targetNodeId) => {
-            const target = nodeMap.get(targetNodeId);
-            return !!target && target.domain !== node.domain && target.domain !== "shared";
-        });
-
-        const hasIncoming = nodes.some(
-            (candidate) =>
-                (candidate.links || []).includes(node.node_id) &&
-                candidate.domain !== node.domain &&
-                candidate.domain !== "shared",
-        );
-
-        const hasBranchPair = nodes.some(
-            (candidate) =>
-                candidate.branch === node.branch &&
-                candidate.node_id !== node.node_id &&
-                candidate.domain !== node.domain &&
-                candidate.domain !== "shared",
-        );
-
-        return hasOutgoing || hasIncoming || hasBranchPair;
-    }
-
-    function formatDomainBadge(nodeDomain) {
-        if (nodeDomain === "ai") {
-            return "<span class='qa-domain-badge ai'>AI</span>";
-        }
-        if (nodeDomain === "quantum") {
-            return "<span class='qa-domain-badge quantum'>Quantum</span>";
-        }
-        return "<span class='qa-domain-badge shared'>Shared</span>";
-    }
-
-    function findFirstEntangledNode() {
-        for (const branch of BRANCHES) {
-            const candidates = getBranchNodes(branch);
-            const entangledCandidate = candidates.find((candidate) => hasCrossDomainEntanglement(candidate));
-            if (entangledCandidate) {
-                return entangledCandidate;
-            }
-        }
-        return null;
-    }
-
-    function renderLiveHero(node, linkedNodes) {
-        if (!heroEl || !node) return;
-        const crossDomainTargets = linkedNodes.filter(
-            (linked) => linked.domain !== node.domain && linked.domain !== "shared",
-        );
-
-        if (!crossDomainTargets.length) {
-            heroEl.innerHTML = `
-                <div class="qa-live-hero-card">
-                    <p>Live Entanglement</p>
-                    <strong>${node.title}</strong>
-                    <span>No cross-domain entanglements for this node yet.</span>
-                </div>
-            `;
-            return;
-        }
-
-        heroEl.innerHTML = `
-            <div class="qa-live-hero-card hot">
-                <p>Live Entanglement Active</p>
-                <strong>${node.title}</strong>
-                <span>Connected to ${crossDomainTargets.map((target) => target.title).join(", ")} </span>
-            </div>
-        `;
-    }
-
-    function navigateToNode(targetNode) {
-        if (!targetNode) return;
-        const targetDomain = targetNode.domain === "shared" ? domain : targetNode.domain;
-        const targetWorkspace = workspaceRegistry[targetDomain];
-
-        if (targetWorkspace && targetDomain !== domain) {
-            activateTab(targetDomain);
-            targetWorkspace.focusNode(targetNode.node_id);
-            return;
-        }
-
-        activeBranch = targetNode.branch;
-        activeNodeId = targetNode.node_id;
-        renderAll();
-    }
-
-    function renderBranches() {
-        branchesEl.innerHTML = BRANCHES.map(
-            (branch) => `
-                <button class="qa-branch-btn${branch === activeBranch ? " active" : ""}" data-branch="${branch}">
-                    <span>${BRANCH_ICONS[branch] || "NODE"}</span>
-                    ${branch}
-                </button>
-            `,
-        ).join("");
-
-        branchesEl.querySelectorAll(".qa-branch-btn").forEach((button) => {
-            button.addEventListener("click", () => {
-                activeBranch = button.dataset.branch || BRANCHES[0];
-                const branchNodes = getBranchNodes(activeBranch);
-                activeNodeId = branchNodes[0]?.node_id || null;
-                renderAll();
-            });
-        });
-    }
-
-    function renderNodeList() {
-        const branchNodes = getBranchNodes(activeBranch);
-        listEl.innerHTML = branchNodes
-            .map((node) => {
-                const liveSymbol = hasCrossDomainEntanglement(node)
-                    ? "<span class='qa-entangled-live' title='Live entangled link' aria-label='Live entangled link'>&#8734;</span>"
-                    : "";
-                const badge = formatDomainBadge(node.domain);
-                return `
-                    <button class="qa-node-card${node.node_id === activeNodeId ? " active" : ""}" data-node-id="${node.node_id}">
-                        <p>${node.type}</p>
-                        <h4>${node.title} ${liveSymbol}</h4>
-                        <div>${badge}</div>
-                        <span>Open Node</span>
-                    </button>
-                `;
-            })
-            .join("");
-
-        listEl.querySelectorAll(".qa-node-card").forEach((button) => {
-            button.addEventListener("click", () => {
-                activeNodeId = button.dataset.nodeId;
-                renderAll();
-            });
-        });
-    }
-
-    function renderDetail() {
-        const node = nodeMap.get(activeNodeId);
-        if (!node) {
-            detailEl.innerHTML = "<p>Select a node to explore its content.</p>";
-            return;
-        }
-
-        const linkedNodes = findEntangledNodes(node);
-        const linkPills = linkedNodes
-            .map((linked) => {
-                const entangled = linked.domain !== node.domain && linked.domain !== "shared";
-                const symbol = entangled ? " <span class='qa-entangled-live'>&#8734;</span>" : "";
-                return `<button class=\"qa-chip\" data-node-id=\"${linked.node_id}\">${linked.title}${symbol}</button>`;
-            })
-            .join("");
-
-        const sourceLink = node.url
-            ? `<p class=\"qa-source\"><a href=\"${node.url}\" target=\"_blank\" rel=\"noreferrer\">Open source</a></p>`
-            : "";
-
-        const crossDomainTargets = linkedNodes.filter(
-            (linked) => linked.domain !== node.domain && linked.domain !== "shared",
-        );
-
-        const entangledWith = crossDomainTargets.length
-            ? `
-                <section class="qa-entangled-banner">
-                    <p>Live Entangled To</p>
-                    <div>
-                        ${crossDomainTargets
-                            .map(
-                                (target) =>
-                                    `<button class="qa-chip qa-chip-entangled" data-node-id="${target.node_id}">${target.title} <span class='qa-entangled-live'>&#8734;</span></button>`,
-                            )
-                            .join("")}
-                    </div>
-                </section>
-            `
-            : "";
-
-        const resourcesByType = mapResourcesByType(node.resources || []);
-        const resourceSections = [
-            renderResourceSection("Research Papers", resourcesByType.paper),
-            renderResourceSection("GitHub Repositories", resourcesByType.repo),
-            renderResourceSection("Documentation", resourcesByType.doc),
-            renderResourceSection("Courses", resourcesByType.course),
-            renderResourceSection("Cookbooks", resourcesByType.cookbook),
-            renderResourceSection("Other Resources", resourcesByType.resource),
-            renderResourceSection("Videos", resourcesByType.video),
-            renderResourceSection("Blogs", resourcesByType.blog),
-        ].join("");
-
-        const techSection = renderTechStackSection(node.tech_stack || []);
-        renderLiveHero(node, linkedNodes);
-
-        detailEl.innerHTML = `
-            <article class="qa-detail-card">
-                <p class="qa-detail-type">${node.type}</p>
-                <h4>${node.title}</h4>
-                <p>${node.content}</p>
-                ${sourceLink}
-                ${entangledWith}
-                <section>
-                    <p class="qa-detail-subhead">Live Entangled Links</p>
-                    <div class="qa-chip-row">${linkPills || "<span class='qa-muted'>No linked nodes yet.</span>"}</div>
-                </section>
-                ${techSection}
-                ${resourceSections}
-            </article>
-        `;
-
-        detailEl.querySelectorAll(".qa-chip").forEach((chip) => {
-            chip.addEventListener("click", () => {
-                const targetNodeId = chip.dataset.nodeId;
-                const targetNode = nodeMap.get(targetNodeId);
-                navigateToNode(targetNode);
-            });
-        });
-    }
-
-    function renderRelated() {
-        const node = nodeMap.get(activeNodeId);
-        const related = findEntangledNodes(node);
-
-        relatedEl.innerHTML = `
-            <p class="qa-related-head">Triggered by: <strong>${node?.title || "-"}</strong></p>
-            <div class="qa-related-list">
-                ${related
-                    .map((entry) => {
-                        const symbol = entry.domain !== domain && entry.domain !== "shared"
-                            ? "<span class='qa-entangled-live'>&#8734;</span>"
-                            : "";
-                        return `
-                            <button class="qa-related-item" data-node-id="${entry.node_id}">
-                                <span>${entry.branch}</span>
-                                <strong>${entry.title} ${symbol}</strong>
-                            </button>
-                        `;
-                    })
-                    .join("") || "<p class='qa-muted'>No entangled nodes found.</p>"}
-            </div>
-        `;
-
-        relatedEl.querySelectorAll(".qa-related-item").forEach((button) => {
-            button.addEventListener("click", () => {
-                const targetNode = nodeMap.get(button.dataset.nodeId);
-                navigateToNode(targetNode);
-            });
-        });
-    }
-
-    function renderGraph() {
-        const node = nodeMap.get(activeNodeId);
-        const related = findEntangledNodes(node).slice(0, 6);
-
-        const positions = [
-            { x: 180, y: 110 },
-            { x: 50, y: 45 },
-            { x: 310, y: 45 },
-            { x: 45, y: 175 },
-            { x: 310, y: 175 },
-            { x: 180, y: 30 },
-            { x: 180, y: 195 },
-        ];
-
-        const graphNodes = [node, ...related].filter(Boolean);
-
-        const lines = graphNodes
-            .slice(1)
-            .map((entry, index) => {
-                const from = positions[0];
-                const to = positions[index + 1];
-                const cls = entry.domain !== domain && entry.domain !== "shared" ? "entangled" : "regular";
-                return `<line class="${cls}" x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" />`;
-            })
-            .join("");
-
-        const circles = graphNodes
-            .map((entry, index) => {
-                const pos = positions[index] || positions[0];
-                const label = entry.title.length > 16 ? `${entry.title.slice(0, 16)}...` : entry.title;
-                const cls = index === 0 ? "core" : "leaf";
-                return `
-                    <g class="${cls}" data-node-id="${entry.node_id}">
-                        <circle cx="${pos.x}" cy="${pos.y}" r="${index === 0 ? 18 : 12}" />
-                        <text x="${pos.x}" y="${pos.y + 30}" text-anchor="middle">${label}</text>
-                    </g>
-                `;
-            })
-            .join("");
-
-        graphEl.innerHTML = `<g class="qa-graph-lines">${lines}</g><g>${circles}</g>`;
-
-        graphEl.querySelectorAll("g[data-node-id]").forEach((nodeGroup) => {
-            nodeGroup.addEventListener("click", () => {
-                const targetNode = nodeMap.get(nodeGroup.dataset.nodeId);
-                navigateToNode(targetNode);
-            });
-        });
-    }
-
-    function renderStats() {
-        if (!statsEl) return;
-
-        const node = nodeMap.get(activeNodeId);
-        const branchNodes = getBranchNodes(activeBranch);
-        const entangledOnBranch = branchNodes.filter((item) => hasCrossDomainEntanglement(item)).length;
-        const totalVisible = nodes.filter((item) => item.domain === domain || item.domain === "shared").length;
-        const linkedCount = node ? findEntangledNodes(node).length : 0;
-
-        const allResourceTimes = nodes
-            .flatMap((item) => item.resources || [])
-            .map((resource) => resource.last_checked_at)
-            .filter(Boolean)
-            .map((value) => new Date(value))
-            .filter((date) => !Number.isNaN(date.getTime()));
-
-        const latestResourceCheck = allResourceTimes.length
-            ? new Date(Math.max(...allResourceTimes.map((date) => date.getTime())))
-            : null;
-
-        const refreshedAt = latestResourceCheck
-            ? latestResourceCheck.toLocaleString([], { year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" })
-            : "Not available";
-
-        statsEl.innerHTML = `
-            <h4>Live Stats</h4>
-            <div class="qa-stats-grid">
-                <article class="qa-stat-card">
-                    <p>Visible Nodes</p>
-                    <strong>${totalVisible}</strong>
-                </article>
-                <article class="qa-stat-card">
-                    <p>Branch Entanglements</p>
-                    <strong>${entangledOnBranch}</strong>
-                </article>
-                <article class="qa-stat-card">
-                    <p>Active Node Links</p>
-                    <strong>${linkedCount}</strong>
-                </article>
-            </div>
-            <p class="qa-stats-foot">Last data refresh: ${refreshedAt}</p>
-        `;
-    }
-
-    function ensureValidSelection() {
-        const branchNodes = getBranchNodes(activeBranch);
-        if (!branchNodes.length) {
-            activeBranch = BRANCHES[0];
-        }
-
-        if (!activeNodeId) {
-            const firstEntangled = findFirstEntangledNode();
-            if (firstEntangled) {
-                activeBranch = firstEntangled.branch;
-                activeNodeId = firstEntangled.node_id;
-            }
-        }
-
-        const validNode = nodeMap.get(activeNodeId);
-        if (!validNode || !getBranchNodes(activeBranch).some((item) => item.node_id === activeNodeId)) {
-            activeNodeId = getBranchNodes(activeBranch)[0]?.node_id || null;
-        }
-    }
-
-    function renderAll() {
-        reloadGraphData();
-        ensureValidSelection();
-        branchTitleEl.textContent = activeBranch;
-        renderBranches();
-        renderNodeList();
-        renderDetail();
-        renderRelated();
-        renderStats();
-        renderGraph();
-    }
-
-    async function refreshFromApi() {
-        if (!graphEndpoint) return;
-        try {
-            const response = await fetch(graphEndpoint, { cache: "no-store" });
-            if (!response.ok) return;
-            const latestPayload = await response.json();
-            applyPayload(latestPayload);
-            Object.values(workspaceRegistry).forEach((workspace) => workspace.rerender());
-        } catch (_error) {
-            // Network hiccups should not break the current UI state.
-        }
-    }
-
-    function focusNode(nodeId) {
-        const target = nodeMap.get(nodeId);
-        if (!target) return;
-        activeBranch = target.branch;
-        activeNodeId = target.node_id;
-        renderAll();
-    }
-
-    workspaceRegistry[domain] = {
-        focusNode,
-        rerender: renderAll,
-    };
-
-    activeNodeId = null;
-    renderAll();
-    setInterval(refreshFromApi, 120000);
-}
-
 applyPayload(payload);
 
 const initialTabFromHash = window.location.hash.replace("#", "").trim();
@@ -647,6 +563,54 @@ if (initialTabFromHash && Array.from(tabButtons).some((button) => button.dataset
     activateTab(initialTabFromHash);
 }
 
+window.addEventListener("hashchange", () => {
+    const tabFromHash = window.location.hash.replace("#", "").trim();
+    if (!tabFromHash) return;
+    if (Array.from(tabButtons).some((button) => button.dataset.tab === tabFromHash)) {
+        activateTab(tabFromHash);
+    }
+});
+
 document.querySelectorAll(".qa-shell").forEach((shell) => {
     initWorkspace(shell);
+});
+
+function getActiveWorkspace() {
+    const activePanel = Array.from(tabPanels).find((panel) => panel.classList.contains("active"));
+    if (!activePanel) return null;
+    const domain = activePanel.id;
+    if (domain !== "quantum" && domain !== "ai") return null;
+    return workspaceRegistry[domain] || null;
+}
+
+document.addEventListener("keydown", (event) => {
+    const workspace = getActiveWorkspace();
+    if (!workspace) return;
+
+    if (event.key === "/") {
+        if (isTextInputTarget(event.target)) return;
+        event.preventDefault();
+        workspace.focusSearch();
+        return;
+    }
+
+    if (event.key === "ArrowDown") {
+        if (isTextInputTarget(event.target)) return;
+        event.preventDefault();
+        workspace.moveSelection(1);
+        return;
+    }
+
+    if (event.key === "ArrowUp") {
+        if (isTextInputTarget(event.target)) return;
+        event.preventDefault();
+        workspace.moveSelection(-1);
+        return;
+    }
+
+    if (event.key === "Enter") {
+        if (isTextInputTarget(event.target)) return;
+        event.preventDefault();
+        workspace.openFirstEntangled();
+    }
 });

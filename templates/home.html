@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260321-qa1" />
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=20260321-qa4" />
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}?v=20260320-01" />
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=20260320-01" />
 </head>
@@ -21,9 +21,9 @@
             <a class="tab-button tab-link" href="{% url 'blog-list' %}">Blog</a>
             <span class="menu-sep" aria-hidden="true">-</span>
             <div class="quantum-ai-combo" role="group" aria-label="Quantum and AI tabs">
-                <button class="tab-button" data-tab="quantum">Quantum</button>
+                <a class="tab-button tab-link" href="#quantum" data-tab="quantum">Quantum</a>
                 <button class="entangled-symbol" type="button" aria-label="Toggle between Quantum and AI tabs" title="Toggle Quantum/AI">&#8734;</button>
-                <button class="tab-button" data-tab="ai">AI</button>
+                <a class="tab-button tab-link" href="#ai" data-tab="ai">AI</a>
             </div>
         </nav>
     </header>
@@ -32,7 +32,7 @@
         <section id="about" class="tab-panel active">
             <div class="about-layout">
                 <aside class="profile-panel">
-                    <img src="{% static 'img/profile.jpg' %}" alt="Profile avatar" />
+                    <img src="{% if profile.avatar_url %}{{ profile.avatar_url }}{% else %}{% static 'img/profile.jpg' %}{% endif %}" alt="Profile avatar" />
                     <h1>{{ profile.name|default:'Rajesh Karra' }}</h1>
                     <p class="tagline">Future-focused researcher and builder in LLMs, Quantum AI, and open research systems.</p>
 
@@ -54,61 +54,93 @@
                 <section class="about-main">
                     <article class="section-card resume-card">
                         <h2>Rajesh Karra</h2>
-                        <p class="resume-role">Research Engineer | Quantum Machine Learning and LLMs</p>
+                        <p class="resume-role">Research Engineer | Quantum Machine Learning &amp; LLMs</p>
                         <p>
-                            I am a Computer Science graduate (B.Sc.) focused on the intersection of High-Performance
-                            Computing, Sequential Data Modeling, and Quantum AI. My work centers on treating complex
-                            datasets, from ancient texts to particle physics, as a universal framework for discovery.
+                            +91 (888) 141-4149 | rajesh.karra@outlook.com | Hyderabad, INDIA
+                        </p>
+                        <p class="connect-links">
+                            <a href="https://www.linkedin.com/in/rajesh-karra/" target="_blank" rel="noreferrer">LinkedIn</a>
+                            <span>|</span>
+                            <a href="https://github.com/r-karra" target="_blank" rel="noreferrer">GitHub</a>
+                            <span>|</span>
+                            <a href="https://www.kaggle.com/rajeshkumarkarra" target="_blank" rel="noreferrer">Kaggle</a>
+                            <span>|</span>
+                            <a href="https://huggingface.co/r-karra" target="_blank" rel="noreferrer">Hugging Face</a>
+                            <span>|</span>
+                            <a href="https://developers.google.com/profile/u/rajesh_karra" target="_blank" rel="noreferrer">Google Developers</a>
+                            <span>|</span>
+                            <a href="https://www.skills.google/public_profiles/0c60f436-b3eb-4add-b238-a9f378c5066c" target="_blank" rel="noreferrer">Skill.google</a>
+                        </p>
+
+                        <h3>Career Excellence Summary</h3>
+                        <p>
+                            Aspiring IT professional with a strong foundation in computer science and hands-on machine
+                            learning experience. Google Summer of Code 2026 candidate with ML4Sci, focused on Quantum
+                            Particle Transformer (Q-ParT) for High Energy Physics.
+                        </p>
+
+                        <h3>Education</h3>
+                        <p>
+                            2021 - 2024 | Bachelor of Science in Computer Science, Hindi Mahavidyalaya,
+                            Osmania University, Hyderabad, INDIA | 7.87 CGPA
                         </p>
 
                         <h3>GSoC 2026 | Research Sandbox</h3>
                         <p>
-                            I am currently a candidate for Google Summer of Code 2026 with ML4Sci, focusing on the
-                            Quantum Particle Transformer (Q-ParT) project.
+                            Google Summer of Code Contributor (Expected) | ML4Sci Project: Quantum Particle
+                            Transformer (Q-ParT)
                         </p>
                         <ul>
-                            <li><strong>GSoC-2026-Research:</strong> My primary research sandbox.</li>
-                            <li><strong>Quantum Attention PoC:</strong> A JAX + PennyLane implementation of hybrid variational circuits for sequence modeling.</li>
-                            <li><strong>Quark-Gluon Classification:</strong> High-performance jet classification using the Google/DeepMind stack (JAX/Flax/Optax).</li>
-                            <li><strong>Technical Benchmarks:</strong> Documentation on addressing Barren Plateaus and scaling to 100+ qubits.</li>
+                            <li><strong>Quantum Attention PoC:</strong> Hybrid variational circuits using JAX + PennyLane.</li>
+                            <li><strong>Quark-Gluon Classification:</strong> Jet classification with JAX/Flax/Optax.</li>
+                            <li><strong>Scale Target:</strong> 100+ qubits with benchmark tracking for barren plateau mitigation.</li>
                         </ul>
 
-                        <h3>Core Projects and Datasets</h3>
+                        <h3>Publications and Datasets</h3>
                         <p><strong>Cleaned KJV Bible for LLMs (Kaggle)</strong></p>
                         <ul>
                             <li><strong>Role:</strong> Lead Data Engineer.</li>
-                            <li><strong>Impact:</strong> Engineered a structured, high-fidelity dataset of 31,102 verses for LLM research.</li>
-                            <li><strong>Relevance:</strong> Foundational benchmark for large-scale sequence modeling, with ETL and data-handling patterns transferable to High Energy Physics datasets.</li>
+                            <li><strong>Impact:</strong> Structured dataset with 31,102 verses for LLM research.</li>
+                            <li><strong>Link:</strong> <a href="https://www.kaggle.com/datasets/rajeshkumarkarra/cleaned-kjv-bible-for-llms" target="_blank" rel="noreferrer">Kaggle Dataset</a></li>
                         </ul>
 
-                        <h3>Technical Stack</h3>
+                        <h3>Academic Projects</h3>
                         <ul>
-                            <li><strong>Frameworks:</strong> JAX, Flax, PennyLane, Cirq, TensorFlow, PyTorch.</li>
-                            <li><strong>Infrastructure:</strong> XLA (Accelerated Linear Algebra), GPU-accelerated simulation (lightning.gpu).</li>
-                            <li><strong>Mathematics:</strong> Advancing in AP Calculus and Quantum Dynamics to support utility-scale QML research.</li>
+                            <li><strong>House Price Prediction:</strong> Regression pipeline with R² 0.85.</li>
+                            <li><strong>Sentiment Analysis LSTM:</strong> Movie review classifier with &gt;88% accuracy.</li>
+                            <li><strong>Digit Recognition:</strong> CNN model with 99.2% validation accuracy.</li>
+                            <li><strong>Quantum Attention PoC:</strong> Sequence modeling for texts and particle datasets.</li>
                         </ul>
 
-                        <h3>Qualifications and Mission</h3>
+                        <h3>Skills</h3>
                         <ul>
-                            <li><strong>Qualification:</strong> B.Sc. in Computer Science.</li>
-                            <li><strong>Mission:</strong> Build AI systems that drive scientific discovery at the LHC while supporting human emotional and spiritual growth.</li>
+                            <li><strong>Programming and Tools:</strong> Python, IBM Qiskit, Git, Jupyter Notebook, VS Code, Linux.</li>
+                            <li><strong>Machine Learning:</strong> Feature engineering, model evaluation, hyperparameter tuning, cross-validation.</li>
+                            <li><strong>Deep Learning:</strong> TensorFlow, Keras, CNNs, RNNs/LSTMs, NLP techniques.</li>
+                            <li><strong>Infrastructure:</strong> XLA and GPU-accelerated simulation (lightning.gpu).</li>
                         </ul>
+
+                        <h3>Mission</h3>
+                        <p>
+                            To build AI systems that drive scientific discovery at scale while supporting human
+                            emotional and spiritual growth through advanced computational techniques.
+                        </p>
 
                         <p class="connect-links">
                             <strong>Connect with me:</strong>
-                            <a href="mailto:you@example.com">Email</a>
+                            <a href="mailto:rajesh.karra@outlook.com">Email</a>
                             <span>|</span>
                             <a href="https://github.com/r-karra" target="_blank" rel="noreferrer">GitHub</a>
                             <span>|</span>
-                            <a href="https://www.kaggle.com/" target="_blank" rel="noreferrer">Kaggle</a>
+                            <a href="https://www.kaggle.com/rajeshkumarkarra" target="_blank" rel="noreferrer">Kaggle</a>
                             <span>|</span>
-                            <a href="https://huggingface.co/" target="_blank" rel="noreferrer">Hugging Face</a>
+                            <a href="https://huggingface.co/r-karra" target="_blank" rel="noreferrer">Hugging Face</a>
                             <span>|</span>
-                            <a href="https://www.cloudskillsboost.google/" target="_blank" rel="noreferrer">skills.google</a>
+                            <a href="https://www.skills.google/public_profiles/0c60f436-b3eb-4add-b238-a9f378c5066c" target="_blank" rel="noreferrer">Skill.google</a>
                             <span>|</span>
                             <a href="https://developers.google.com/profile/u/rajesh_karra" target="_blank" rel="noreferrer">Google Developers</a>
                             <span>|</span>
-                            <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a>
+                            <a href="https://www.linkedin.com/in/rajesh-karra/" target="_blank" rel="noreferrer">LinkedIn</a>
                         </p>
                     </article>
 
@@ -223,80 +255,140 @@
 
         <section id="quantum" class="tab-panel">
             <section class="qa-shell" data-domain="quantum" data-graph-endpoint="{% url 'knowledge-graph-api' %}">
-                <aside class="qa-sidebar" aria-label="Quantum AI branches">
-                    <p class="qa-topic">Topic</p>
-                    <h2>Quantum AI</h2>
-                    <p class="qa-subtitle">Primary Navigation</p>
-                    <div class="qa-branches" role="tablist" aria-label="Quantum AI branches"></div>
-                </aside>
+                <header class="qa-az-nav" aria-label="A to Z topic navigation"></header>
+                <section class="qa-body" aria-live="polite">
+                    <aside class="qa-left" aria-label="Filtered topics">
+                        <h2>Topics</h2>
+                        <p class="qa-left-sub">Quantum + AI graph index</p>
+                        <input class="qa-search-input" type="search" placeholder="Search topics" aria-label="Search topics" />
+                        <div class="qa-shortcuts-hint" aria-label="Keyboard shortcuts">
+                            <span>/ Search</span>
+                            <span>↑↓ Navigate</span>
+                            <span>Enter Open Link</span>
+                        </div>
+                        <div class="qa-topic-list" role="listbox" aria-label="Topic list">
+                            {% if qa_bootstrap.quantum.topics %}
+                                {% for topic in qa_bootstrap.quantum.topics %}
+                                <button class="qa-topic-item{% if forloop.first %} active{% endif %}" data-node-id="{{ topic.node_id }}">
+                                    <span class="qa-topic-letter">{{ topic.category }}</span>
+                                    <strong>{{ topic.title }}</strong>
+                                </button>
+                                {% endfor %}
+                            {% else %}
+                                <p class="qa-empty">No topics available.</p>
+                            {% endif %}
+                        </div>
+                    </aside>
 
-                <section class="qa-main" aria-live="polite">
-                    <header class="qa-main-head">
-                        <p class="qa-kicker">Dynamic Page Loader</p>
-                        <p class="qa-build">Build 20260320-20</p>
-                        <h3 class="qa-branch-title">Documentation</h3>
-                        <div class="qa-live-hero"></div>
-                    </header>
-                    <div class="qa-main-grid">
-                        <nav class="qa-node-list" aria-label="Branch nodes"></nav>
-                        <article class="qa-node-detail"></article>
-                    </div>
+                    <article class="qa-center" aria-label="Topic detail">
+                        {% if qa_bootstrap.quantum.active %}
+                        <header class="qa-center-head">
+                            <h1>{{ qa_bootstrap.quantum.active.title }}</h1>
+                            <div class="qa-center-meta">
+                                <span>{{ qa_bootstrap.quantum.active.domain|title }}</span>
+                                <span>{{ qa_bootstrap.quantum.active.branch }}</span>
+                                <span>{{ qa_bootstrap.quantum.active.category }}</span>
+                            </div>
+                        </header>
+                        <p class="qa-center-content">{{ qa_bootstrap.quantum.active.content }}</p>
+                        {% if qa_bootstrap.quantum.active.url %}
+                        <a class="qa-source-link" href="{{ qa_bootstrap.quantum.active.url }}" target="_blank" rel="noreferrer">Open source</a>
+                        {% endif %}
+                        {% else %}
+                        <p class="qa-empty">No topic data available.</p>
+                        {% endif %}
+                    </article>
+
+                    <aside class="qa-right" aria-label="Entangled links panel">
+                        <h3>Entangled Links</h3>
+                        <p class="qa-right-sub">Cross-node navigation</p>
+                        <div class="qa-entangled-list">
+                            {% if qa_bootstrap.quantum.entangled %}
+                                {% for node in qa_bootstrap.quantum.entangled %}
+                                <button class="qa-entangled-item" data-node-id="{{ node.node_id }}">
+                                    <span>{{ node.branch }}</span>
+                                    <strong>{{ node.title }}</strong>
+                                    <small>{% if node.is_cross %}Cross Domain{% else %}Local{% endif %}</small>
+                                </button>
+                                {% endfor %}
+                            {% else %}
+                                <p class="qa-empty">No connections</p>
+                            {% endif %}
+                        </div>
+                    </aside>
                 </section>
-
-                <aside class="qa-right" aria-label="Entanglement panel">
-                    <header>
-                        <p class="qa-kicker">Entanglement Engine</p>
-                        <h3>Related Content</h3>
-                    </header>
-                    <div class="qa-related"></div>
-                    <section class="qa-stats" aria-label="Live statistics"></section>
-                    <section class="qa-graph-wrap">
-                        <h4>Knowledge Graph View</h4>
-                        <svg class="qa-graph" viewBox="0 0 360 220" role="img" aria-label="Node relation graph"></svg>
-                    </section>
-                </aside>
             </section>
         </section>
 
         <section id="ai" class="tab-panel">
             <section class="qa-shell" data-domain="ai" data-graph-endpoint="{% url 'knowledge-graph-api' %}">
-                <aside class="qa-sidebar" aria-label="Quantum AI branches">
-                    <p class="qa-topic">Topic</p>
-                    <h2>Quantum AI</h2>
-                    <p class="qa-subtitle">Primary Navigation</p>
-                    <div class="qa-branches" role="tablist" aria-label="Quantum AI branches"></div>
-                </aside>
+                <header class="qa-az-nav" aria-label="A to Z topic navigation"></header>
+                <section class="qa-body" aria-live="polite">
+                    <aside class="qa-left" aria-label="Filtered topics">
+                        <h2>Topics</h2>
+                        <p class="qa-left-sub">Quantum + AI graph index</p>
+                        <input class="qa-search-input" type="search" placeholder="Search topics" aria-label="Search topics" />
+                        <div class="qa-shortcuts-hint" aria-label="Keyboard shortcuts">
+                            <span>/ Search</span>
+                            <span>↑↓ Navigate</span>
+                            <span>Enter Open Link</span>
+                        </div>
+                        <div class="qa-topic-list" role="listbox" aria-label="Topic list">
+                            {% if qa_bootstrap.ai.topics %}
+                                {% for topic in qa_bootstrap.ai.topics %}
+                                <button class="qa-topic-item{% if forloop.first %} active{% endif %}" data-node-id="{{ topic.node_id }}">
+                                    <span class="qa-topic-letter">{{ topic.category }}</span>
+                                    <strong>{{ topic.title }}</strong>
+                                </button>
+                                {% endfor %}
+                            {% else %}
+                                <p class="qa-empty">No topics available.</p>
+                            {% endif %}
+                        </div>
+                    </aside>
 
-                <section class="qa-main" aria-live="polite">
-                    <header class="qa-main-head">
-                        <p class="qa-kicker">Dynamic Page Loader</p>
-                        <p class="qa-build">Build 20260320-20</p>
-                        <h3 class="qa-branch-title">Documentation</h3>
-                        <div class="qa-live-hero"></div>
-                    </header>
-                    <div class="qa-main-grid">
-                        <nav class="qa-node-list" aria-label="Branch nodes"></nav>
-                        <article class="qa-node-detail"></article>
-                    </div>
+                    <article class="qa-center" aria-label="Topic detail">
+                        {% if qa_bootstrap.ai.active %}
+                        <header class="qa-center-head">
+                            <h1>{{ qa_bootstrap.ai.active.title }}</h1>
+                            <div class="qa-center-meta">
+                                <span>{{ qa_bootstrap.ai.active.domain|title }}</span>
+                                <span>{{ qa_bootstrap.ai.active.branch }}</span>
+                                <span>{{ qa_bootstrap.ai.active.category }}</span>
+                            </div>
+                        </header>
+                        <p class="qa-center-content">{{ qa_bootstrap.ai.active.content }}</p>
+                        {% if qa_bootstrap.ai.active.url %}
+                        <a class="qa-source-link" href="{{ qa_bootstrap.ai.active.url }}" target="_blank" rel="noreferrer">Open source</a>
+                        {% endif %}
+                        {% else %}
+                        <p class="qa-empty">No topic data available.</p>
+                        {% endif %}
+                    </article>
+
+                    <aside class="qa-right" aria-label="Entangled links panel">
+                        <h3>Entangled Links</h3>
+                        <p class="qa-right-sub">Cross-node navigation</p>
+                        <div class="qa-entangled-list">
+                            {% if qa_bootstrap.ai.entangled %}
+                                {% for node in qa_bootstrap.ai.entangled %}
+                                <button class="qa-entangled-item" data-node-id="{{ node.node_id }}">
+                                    <span>{{ node.branch }}</span>
+                                    <strong>{{ node.title }}</strong>
+                                    <small>{% if node.is_cross %}Cross Domain{% else %}Local{% endif %}</small>
+                                </button>
+                                {% endfor %}
+                            {% else %}
+                                <p class="qa-empty">No connections</p>
+                            {% endif %}
+                        </div>
+                    </aside>
                 </section>
-
-                <aside class="qa-right" aria-label="Entanglement panel">
-                    <header>
-                        <p class="qa-kicker">Entanglement Engine</p>
-                        <h3>Related Content</h3>
-                    </header>
-                    <div class="qa-related"></div>
-                    <section class="qa-stats" aria-label="Live statistics"></section>
-                    <section class="qa-graph-wrap">
-                        <h4>Knowledge Graph View</h4>
-                        <svg class="qa-graph" viewBox="0 0 360 220" role="img" aria-label="Node relation graph"></svg>
-                    </section>
-                </aside>
             </section>
         </section>
     </main>
 
     {{ quantum_ai_graph|json_script:"qa-graph-data" }}
-    <script src="{% static 'js/tabs.js' %}?v=20260321-qa1"></script>
+    <script src="{% static 'js/tabs.js' %}?v=20260321-qa4"></script>
 </body>
 </html>
