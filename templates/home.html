@@ -15,7 +15,7 @@
 <body>
     <header class="site-header">
         <a class="brand" href="#" aria-label="Homepage">{{ profile.name|default:'Rajesh Karra' }}</a>
-        <nav class="main-menu" aria-label="Main navigation">
+        <nav id="main-menu" class="main-menu" aria-label="Main navigation">
             <button class="tab-button active" data-tab="about">About Me</button>
             <span class="menu-sep" aria-hidden="true">-</span>
             <a class="tab-button tab-link" href="{% url 'blog-list' %}">Blog</a>
@@ -26,9 +26,6 @@
                 <button class="tab-button" data-tab="ai">AI</button>
             </div>
         </nav>
-        <div class="header-status" aria-label="Deployment status">
-            <span class="live-badge">Live Version {{ APP_VERSION }}</span>
-        </div>
     </header>
 
     <main class="content">

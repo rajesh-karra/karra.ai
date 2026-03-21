@@ -9,13 +9,15 @@ load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-secret-key-change-me")
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
-APP_VERSION = os.getenv("APP_VERSION", "v2026.03")
 
-ALLOWED_HOSTS = [
+_allowed_hosts_raw = os.getenv("DJANGO_ALLOWED_HOSTS", "").strip()
+_default_allowed_hosts = ["localhost", "127.0.0.1", "0.0.0.0", ".app.github.dev"]
+_env_allowed_hosts = [
     host.strip()
-    for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    for host in _allowed_hosts_raw.split(",")
     if host.strip()
 ]
+ALLOWED_HOSTS = list(dict.fromkeys([*_default_allowed_hosts, *_env_allowed_hosts]))
 
 
 def _normalize_origin(origin_or_host: str) -> list[str]:
@@ -93,7 +95,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "portfolio.context_processors.app_meta",
             ],
         },
     },
